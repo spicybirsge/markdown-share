@@ -1,3 +1,0 @@
-create api routes and you can create api versions here by adding folders like `v1` I have already created a v1 folder for you.
-
-note: you need to update index.js for all folders.
