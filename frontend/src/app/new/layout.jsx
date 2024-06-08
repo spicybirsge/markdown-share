@@ -3,16 +3,16 @@ import {Provider} from "@/providers/provider"
 const inter = Inter({ subsets: ["latin"] });
 ;
 export const metadata = {
-  title: 'Home / Markdown Share',
-  description: 'Alternative to codebins! Why share only code, when you can share markdown files with explanations along with code',
-  keywords: ['markdown share', 'markdown', 'share', 'codebin', 'sourcebin', 'coding', 'blogging'],
+  title: 'New / Markdown Share',
+  description: 'Create a new share - Markdown Share',
+  keywords: ['markdown share', 'markdown', 'share', 'new share', 'new markdown', 'coding', 'new readme'],
   icons: {
     icon: '/assets/media/logo.png',
    
   },
   openGraph: {
-    title: 'Markdown share',
-    description: 'Alternative to codebins! Why share only code, when you can share markdown files with explanations along with code',
+    title: 'New / Markdown Share',
+    description: 'Create a new share - Markdown Share',
     site_name: 'Markdown share',
     images: [
       {

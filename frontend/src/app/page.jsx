@@ -2,9 +2,9 @@
 import variables from "@/variables/variables";
 import NavBar from "@/components/NavBar";
 import { Container, Text , Heading, Flex, Card, Box, Strong, Tooltip, Button} from "@radix-ui/themes";
-import './page.module.css'
 import timeStampToDate from "@/functions/timeStampToDate";
 import Link from "next/link";
+
 export default async function Home() {
   function truncateText(text) {
     const maxLength = 48;
@@ -19,6 +19,7 @@ export default async function Home() {
    
     return text;
 }
+try {
   const url = variables.BACKEND_URL+"/api/v1/read/latest-shares"
   const request = await fetch(url, {
     method: 'GET',
@@ -28,6 +29,7 @@ export default async function Home() {
   })
   const response = await request.json();
   const shares = response.data;
+
   return (
  <>
     <NavBar active={"home"} ></NavBar>
@@ -41,7 +43,7 @@ export default async function Home() {
 <div style={{marginBottom: "25px"}}></div>
 <Flex gap={"4"} wrap={"wrap"} justify={"center"}>
 {shares.map(i => (
-  <Box width={"500px"} >
+  <Box width={"500px"} key={i._id}>
   <Card size={"2"} >
   <Text  size={"6"}>
    <Strong> {i.title}</Strong>
@@ -63,4 +65,8 @@ export default async function Home() {
   </Container>
   </>
   );
+} catch(e) {
+  console.error(e)
+  return <h1>Internal Server Error</h1>
+}
 }
