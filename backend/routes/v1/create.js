@@ -6,14 +6,14 @@ const generateRandomName = require ('../../functions/generateRandomName');
 
 router.post("/share", async(req, res) => {
     try {
-        const { content, isPrivate} = req.body;
+        const { content, isUnlisted} = req.body;
         let {title, description} = req.body;
-        if(!content || isPrivate) {
-            return res.status(400).json({success: false, message: "content, isPrivate is required", code: 400})
+        if(!content) {
+            return res.status(400).json({success: false, message: "content, isUnlisted is required", code: 400})
         }
 
-        if(typeof isPrivate !== "boolean") {
-            return res.status(400).json({success: false, message: "isPrivate should be boolean", code: 400})
+        if(typeof isUnlisted !== "boolean") {
+            return res.status(400).json({success: false, message: "isUnlisted should be boolean", code: 400})
         }
         if(!title) {
             title = generateRandomName()
@@ -38,7 +38,7 @@ router.post("/share", async(req, res) => {
             content: content,
             createdAt: Date.now(),
             views: [],
-            private: isPrivate
+            unlisted: isUnlisted
         }
         await shares.create(shareObject)
         return res.status(200).json({success: true, message: "share created", data: shareObject, code: 200})

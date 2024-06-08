@@ -7,7 +7,7 @@ const shares = new mongoose.Schema({
     content: String,
     createdAt: String,
     views: Array,
-    private: Boolean
+    unlisted: Boolean
 })
 
 module.exports = mongoose.model("Shares", shares)
