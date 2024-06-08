@@ -1,5 +1,5 @@
 import { Inter } from "next/font/google";
-import {Provider} from "@/providers/provider"
+import Provider from "@/providers/provider"
 const inter = Inter({ subsets: ["latin"] });
 ;
 export const metadata = {

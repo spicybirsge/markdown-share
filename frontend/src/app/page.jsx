@@ -19,6 +19,7 @@ export default async function Home() {
    
     return text;
 }
+let shares = null
 try {
   const url = variables.BACKEND_URL+"/api/v1/read/latest-shares"
   const request = await fetch(url, {
@@ -28,8 +29,13 @@ try {
     }
   })
   const response = await request.json();
-  const shares = response.data;
-
+ shares = response.data;
+} catch (e) {
+  console.log(e)
+  }
+  if(!shares) {
+    return <h1>Internal server error</h1>
+  }
   return (
  <>
     <NavBar active={"home"} ></NavBar>
@@ -65,8 +71,5 @@ try {
   </Container>
   </>
   );
-} catch(e) {
-  console.error(e)
-  return <h1>Internal Server Error</h1>
-}
+
 }
