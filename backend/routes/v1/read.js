@@ -39,4 +39,39 @@ router.get("/share", async(req, res) => {
     }
 })
 
+router.get("/latest-shares", async(req, res) => {
+    try { 
+        let {limit} = req.query;
+        
+        if(!limit) {
+            limit = 50
+        }
+        limit = limit*1 
+        if(isNaN(limit)) {
+            return res.status(400).json({success: false, message: "limit should be a number", code: 200})
+        }
+        const latestShares = await shares.find({unlisted: false}).sort({ createdAt: -1 }).limit(limit)
+        const newShares = []
+        for(const sh of latestShares) {
+            const data = {
+                _id: sh._id,
+                title: sh.title,
+                description: sh.description,
+                content: sh.content,
+                createdAt: sh.createdAt,
+                views: sh.views.length,
+                unlisted: sh.unlisted
+
+
+            }
+            newShares.push(data)
+        }
+
+        return res.status(200).json({success:true, message: `latest ${limit} shares`, data: newShares, code: 200})
+    } catch(e) {
+        console.error(e)
+        return res.status(500).json({success: false, message: "internal server error", code: 500})
+    }
+})
+
 module.exports = router;
