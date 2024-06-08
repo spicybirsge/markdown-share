@@ -22,9 +22,7 @@ if(process.env.NODE_ENV === 'production') {
 
 
 app.use('/api/v1/create', require('./routes/v1/create'));
-app.use('/api/v1/delete', require('./routes/v1/delete'));
 app.use('/api/v1/read', require('./routes/v1/read'));
-app.use('/api/v1/update', require('./routes/v1/update'));
 
 app.get('/status', async (req, res) => {
     res.status(200).json({success: true, message: "All systems operational.", code: 200})
