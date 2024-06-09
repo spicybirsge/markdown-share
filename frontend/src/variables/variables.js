@@ -1,4 +1,4 @@
 const variables = { 
-    'BACKEND_URL' : 'http://localhost:5050'
+    'BACKEND_URL' : 'https://backend-mdshare.vercel.app'
 }
 export default variables
