@@ -69,6 +69,7 @@ try {
           <Link href={"/share/"+i._id}><Button style={{marginBottom: "0"}} size={"2"} variant="soft">View</Button></Link>
   </Card></Box>
 ))}
+{shares.length === 0 ? <Text>No Shares Yet...</Text> : <></>}
 </Flex>
   </Container>
   </>

@@ -5,6 +5,7 @@ if (process.env.NODE_ENV !== 'production') {
 const express = require('express');
 const logger = require('morgan');
 const cors = require('cors');
+const axios = require("axios");
 
 const errorHandler = require('./middleware/errorHandler');
 require('./database/connector')();
@@ -23,6 +24,29 @@ if(process.env.NODE_ENV === 'production') {
 
 app.use('/api/v1/create', require('./routes/v1/create'));
 app.use('/api/v1/read', require('./routes/v1/read'));
+
+app.get("/proxy", async(req, res) => {
+    try {
+        const {url} = req.query;
+        if(!url) {
+            return res.status(400).json({success:false, message: 'Invalid url', code: 400})
+        }
+        if(!url.startsWith("http://") && !url.startsWith("https://")) {
+            return res.status(400).json({success:false, message: 'Invalid url', code: 400})
+        }
+        const response = await axios.get(url, {
+            responseType: 'arraybuffer',
+          })
+
+          const filetype = response.headers['content-type'];
+          res.set('Content-Type', filetype);
+          res.send(response.data)
+    } catch(e) {
+        console.error(e)
+        return res.status(500).json({success:false, message: 'Internal server error', code: 500})
+    }
+
+})
 
 app.get('/status', async (req, res) => {
     res.status(200).json({success: true, message: "All systems operational.", code: 200})

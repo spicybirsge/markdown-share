@@ -9,9 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-separator": "^1.0.3",
+    "@radix-ui/react-toast": "^1.1.5",
     "@radix-ui/themes": "^3.0.5",
+    "@uiw/react-md-editor": "^4.0.4",
     "next": "14.2.3",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-hot-toast": "^2.4.1",
+    "rehype-sanitize": "^6.0.0"
   }
 }

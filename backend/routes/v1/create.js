@@ -9,7 +9,7 @@ router.post("/share", async(req, res) => {
         const { content, isUnlisted} = req.body;
         let {title, description} = req.body;
         if(!content) {
-            return res.status(400).json({success: false, message: "content, isUnlisted is required", code: 400})
+            return res.status(400).json({success: false, message: "content is required", code: 400})
         }
 
         if(typeof isUnlisted !== "boolean") {
