@@ -1,3 +1,6 @@
+import New from "@/components/New"
+
+
 
 export const metadata = {
     title: 'New / Markdown Share',
@@ -19,6 +22,7 @@ export const metadata = {
     },
   
   };
-export default function Page() {
-    return <><h1>Hello world</h1></>
-}
+
+  export default function Page() {
+    return <New></New>
+  }

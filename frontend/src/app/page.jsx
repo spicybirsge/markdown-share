@@ -6,9 +6,11 @@ import timeStampToDate from "@/functions/timeStampToDate";
 import Link from "next/link";
 
 export default async function Home() {
-  function truncateText(text) {
-    const maxLength = 48;
-    
+  function truncateText(text, maxLength) {
+  
+    if(!maxLength) {
+      maxLength = 48;
+    }
     
   
     if (text.length > maxLength) {
@@ -51,8 +53,8 @@ try {
 {shares.map(i => (
   <Box width={"500px"} key={i._id}>
   <Card size={"2"} >
-  <Text  size={"6"}>
-   <Strong> {i.title}</Strong>
+  <Text  size={"6"} as="h1" title={i.title}>
+   <Strong> {truncateText(i.title, 27)}</Strong>
           </Text> <div style={{marginBottom: "5px"}}></div>
           
      <Text as="p" title={i.description || "No description"}>{truncateText(i.description || "No description")}
