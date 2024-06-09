@@ -27,6 +27,7 @@ router.get("/share", async(req, res) => {
             _id: share._id,
             title: share.title,
             content: share.content,
+            description: share.description,
             createdAt: share.createdAt,
             views: share.views.length,
             unlisted: share.unlisted
