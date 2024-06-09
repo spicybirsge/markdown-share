@@ -71,8 +71,8 @@ return toast.error(response.message || "An error occured")
 <div style={{marginBottom: "15px"}}></div>
 <Text as="label">Unlisted <Switch checked={unlisted} size={"3"} onCheckedChange={() => {setUnlisted(!unlisted)}}></Switch></Text>
 <div style={{marginBottom: "15px"}}></div>
-<Text size={"6"}>Content</Text>
-<MDEditor value={content} placeholder={"Your markdown content goes here..."} onChange={(e) => {setContent(replaceWithProxy(e))}} previewOptions={{rehypePlugins: [[rehypeSanitize]]}}></MDEditor>
+<Text size={"6"}>Content</Text><div data-color-mode="light">
+<MDEditor value={content} placeholder={"Your markdown content goes here..."} onChange={(e) => {setContent(replaceWithProxy(e))}} previewOptions={{rehypePlugins: [[rehypeSanitize]]}}></MDEditor></div>
 <div style={{marginBottom: "15px"}}></div>
 <Button loading={creating} onClick={createShare}>Create</Button>
       </Container>
