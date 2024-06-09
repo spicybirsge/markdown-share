@@ -4,7 +4,7 @@ import NavBar from "@/components/NavBar";
 import { Container, Text , Heading, Flex, Card, Box, Strong, Tooltip, Button} from "@radix-ui/themes";
 import timeStampToDate from "@/functions/timeStampToDate";
 import Link from "next/link";
-
+import TimeAgo from "@/components/TimeAgo";
 export default async function Home() {
   function truncateText(text, maxLength) {
   
@@ -61,7 +61,7 @@ try {
           </Text>
           
           <div style={{marginBottom: "5px"}}></div>
-          <Text as="p">Created on <Strong>{timeStampToDate(i.createdAt*1)}</Strong></Text>
+          <Text as="p">Created <Strong><TimeAgo date={i.createdAt*1}></TimeAgo></Strong></Text>
           <div style={{marginBottom: "5px"}}></div>
           <Text as="p"><Strong>{i.views } views</Strong>
           </Text>
