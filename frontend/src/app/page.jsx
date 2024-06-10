@@ -5,6 +5,26 @@ import { Container, Text , Heading, Flex, Card, Box, Strong, Tooltip, Button} fr
 import timeStampToDate from "@/functions/timeStampToDate";
 import Link from "next/link";
 import TimeAgo from "@/components/TimeAgo";
+async function getShares() {
+  let shares = null
+try {
+  const url = variables.BACKEND_URL+"/api/v1/read/latest-shares"
+  const request = await fetch(url, {
+    method: 'GET',
+    next: {
+      revalidate: 0, 
+    }
+  })
+  const response = await request.json();
+ shares = response.data;
+ return shares
+} catch (e) {
+  console.log(e)
+  }
+  if(!shares) {
+    return false;
+  }
+}
 export default async function Home() {
   function truncateText(text, maxLength) {
   
@@ -21,23 +41,13 @@ export default async function Home() {
    
     return text;
 }
-let shares = null
-try {
-  const url = variables.BACKEND_URL+"/api/v1/read/latest-shares"
-  const request = await fetch(url, {
-    method: 'GET',
-    next: {
-      revalidate: 0, 
-    }
-  })
-  const response = await request.json();
- shares = response.data;
-} catch (e) {
-  console.log(e)
-  }
-  if(!shares) {
-    return <h1>Internal server error</h1>
-  }
+
+let shares = await getShares()
+if(!shares) {
+  
+  return <h1>Internal Server Error</h1>
+}
+
   return (
  <>
     <NavBar active={"home"} ></NavBar>
