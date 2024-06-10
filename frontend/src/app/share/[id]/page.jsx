@@ -4,10 +4,7 @@ import { notFound } from 'next/navigation'
 export async function generateMetadata({ params}) {
     const url = variables.BACKEND_URL+"/api/v1/read/share?metafetch=true&id="+params.id;
     const request = await fetch(url, {
-        method: 'GET',
-        next: {
-          revalidate: 120, 
-        }
+        method: 'GET'
     })
     const response = await request.json()
     if(!response.success) {
