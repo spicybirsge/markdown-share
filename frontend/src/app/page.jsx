@@ -59,15 +59,20 @@ if(!shares) {
 <div style={{marginBottom: "25px"}}></div>
 <Heading as="h1" align={"center"}>Recent Shares</Heading>
 <div style={{marginBottom: "25px"}}></div>
-<Flex gap={"4"} wrap={"wrap"} justify={"center"}>
+<div  style={{
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+  gap: "20px", // Space between cards
+  width: "100%",
+}}>
 {shares.map(i => (
-  <Box width={"500px"} key={i._id}>
-  <Card size={"2"} >
+  <Box   key={i._id}>
+  <Card size={"2"} style={{height: "218px",display: "flex", flexDirection: "column" }}>
   <Text  size={"6"} as="h1" title={i.title}>
    <Strong> {truncateText(i.title, 27)}</Strong>
           </Text> <div style={{marginBottom: "5px"}}></div>
           
-     <Text as="p" title={i.description || "No description"}>{truncateText(i.description || "No description")}
+     <Text as="p" title={i.description || "No description"}>{truncateText(i.description || "No description", 27)}
           </Text>
           
           <div style={{marginBottom: "5px"}}></div>
@@ -75,12 +80,12 @@ if(!shares) {
           <div style={{marginBottom: "5px"}}></div>
           <Text as="p"><Strong>{i.views } views</Strong>
           </Text>
-          <div style={{marginBottom: "10px"}}></div>
-          <Link href={"/share/"+i._id}><Button style={{marginBottom: "0"}} size={"2"} variant="soft">View</Button></Link>
+          <div style={{ flexGrow: 1 }}></div>
+          <Link href={"/share/"+i._id} ><Button style={{ width: "100%", bottom: 0, left: 0}} size={"3"} radius={"full"} variant="surface">View</Button></Link>
   </Card></Box>
 ))}
 {shares.length === 0 ? <Text>No Shares Yet...</Text> : <></>}
-</Flex>
+</div>
   </Container>
   </>
   );
