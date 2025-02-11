@@ -26,21 +26,7 @@ try {
   }
 }
 export default async function Home() {
-  function truncateText(text, maxLength) {
-  
-    if(!maxLength) {
-      maxLength = 48;
-    }
-    
-  
-    if (text.length > maxLength) {
-    
-        return text.slice(0, maxLength) + "...";
-    }
-    
-   
-    return text;
-}
+
 
 let shares = await getShares()
 if(!shares) {
@@ -62,17 +48,23 @@ if(!shares) {
 <div  style={{
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-  gap: "20px", // Space between cards
+  gap: "20px", 
   width: "100%",
 }}>
 {shares.map(i => (
   <Box   key={i._id}>
   <Card size={"2"} style={{height: "218px",display: "flex", flexDirection: "column" }}>
-  <Text  size={"6"} as="h1" title={i.title}>
-   <Strong> {truncateText(i.title, 27)}</Strong>
+  <Text  size={"6"} as="h1" title={i.title} style={{whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    display: "block"}}>
+   <Strong> {i.title}</Strong>
           </Text> <div style={{marginBottom: "5px"}}></div>
           
-     <Text as="p" title={i.description || "No description"}>{truncateText(i.description || "No description", 27)}
+     <Text as="p" title={i.description || "No description"} style={{whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    display: "block"}}>{i.description || "no description"}
           </Text>
           
           <div style={{marginBottom: "5px"}}></div>
