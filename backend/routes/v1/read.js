@@ -45,7 +45,7 @@ router.get("/latest-shares", async(req, res) => {
         let {limit} = req.query;
         
         if(!limit) {
-            limit = 26
+            limit = 28
         }
         limit = limit*1 
         if(isNaN(limit)) {
