@@ -13,7 +13,7 @@ export default function Page() {
   const [description, setDescription] = useState(null)
   const [content, setContent] = useState(null)
   const [creating, setCreating] = useState(false);
-  const [unlisted, setUnlisted] = useState(false)
+  const [unlisted, setUnlisted] = useState(true)
 
 const router = useRouter()
 
