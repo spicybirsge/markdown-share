@@ -1,6 +1,6 @@
 import variables from "@/variables/variables";
 
-export default function replaceWithProxy(markdownText, proxyUrl = variables.BACKEND_URL + "/proxy?url=") {
+export default function replaceWithProxy(markdownText, proxyUrl = variables.PROXY_URL + "/proxy?url=") {
 
   const imagePattern = /!\[(.*?)\]\((.*?)\)/g;
   const imgTagPattern = /<img\s+[^>]*src="([^"]*)"[^>]*>/g;
