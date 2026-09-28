@@ -1,5 +1,5 @@
 const variables = { 
-    'BACKEND_URL' : 'https://backend-mdshare.vercel.app',
-    'PROXY_URL': 'http://shaheercdn.onrender.com'
+    'BACKEND_URL' : 'https://api.markdownshare.shaheerahamed.com',
+    'PROXY_URL': 'https://cdn.shaheerahamed.com'
 }
 export default variables
