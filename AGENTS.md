@@ -59,8 +59,8 @@ Backend:
 - `NODE_ENV` — `production` enables `trust proxy`; otherwise `.env` is loaded via dotenv.
 
 Frontend (read at module load in `src/variables/variables.js`):
-- `BACKEND_URL` — defaults to the production API.
-- `PROXY_URL` — defaults to the production CDN host.
+- `NEXT_PUBLIC_BACKEND_URL` — API origin. The `NEXT_PUBLIC_` prefix is required for the browser bundle to see it; the unprefixed `BACKEND_URL` is still read as a fallback, but only server rendering sees that one.
+- `NEXT_PUBLIC_PROXY_URL` — image proxy origin, same rule.
 
 ## API
 
