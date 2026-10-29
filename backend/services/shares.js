@@ -127,8 +127,8 @@ async function createShare(input = {}) {
     }
 
     // A retried create returns the original share instead of a duplicate. The
-    // lookup happens before validation so a replay succeeds even if the caller
-    // resends slightly different metadata.
+    // lookup happens before the remaining validation so a replay succeeds even
+    // if the caller resends slightly different metadata.
     if (idempotencyKey) {
         const existing = await shares.findOne({ idempotencyKey });
         if (existing) {
