@@ -2,13 +2,13 @@
 
 ## What this project is
 
-**Markdown Share** is a small "codebin for markdown" web app. Users paste markdown, get a shareable link, and others can read the rendered result. Shares can be public (listed on the home page) or unlisted (link-only).
+**Markdown Share** is a small "codebin for markdown" web app. Users paste markdown, get a shareable link, and others can read the rendered result. Shares can be public (listed at `/list` and linked from the landing page) or unlisted (link-only).
 
 Two independent JavaScript apps in one repo:
 
 | Folder | Stack | Role |
 | --- | --- | --- |
-| `frontend/` | Next.js 14 (App Router, JS/JSX), React 18, Radix Themes | SSR pages + client UI |
+| `frontend/` | Next.js 16 (App Router, JS/JSX), React 19, Tailwind 4 + shadcn/ui | SSR pages + client UI |
 | `backend/` | Express 4 (CommonJS), Mongoose 8, MongoDB | REST API + image proxy |
 
 There is no shared package, monorepo tooling, TypeScript, or test suite.
@@ -18,13 +18,15 @@ There is no shared package, monorepo tooling, TypeScript, or test suite.
 ```
 frontend/
   src/app/                 Next.js App Router
-    layout.jsx             Root layout, metadata, Radix Theme provider
-    page.jsx               "/" — SSR list of latest public shares
-    new/page.jsx           "/new" — create form
+    layout.jsx             Root layout, Geist fonts, metadata, sonner Toaster
+    page.jsx               "/" — landing: hero + agent demo + MCP prompt + composer
+    list/page.jsx          "/list" — SSR list of latest public shares
+    new/page.jsx           "/new" — standalone create page
     share/[id]/page.jsx    "/share/[id]" — SSR metadata + client reader
-  src/components/          NavBar, New, Share, ShareContent, TimeAgo
+  src/components/          NavBar, Footer, Logo, ShareComposer, Share, ShareContent, TimeAgo
+    landing/               AgentDemo, McpSection (client-side demo + copy prompt)
+    ui/                    Generated shadcn/base-ui primitives
   src/functions/           replaceWithProxy, timeStampToDate
-  src/providers/           Radix Theme wrapper (renders null until mounted)
   src/variables/           BACKEND_URL / PROXY_URL resolution
   public/assets/media/     logo used by metadata
 
@@ -110,14 +112,15 @@ Validation, defaults and the shape of a share live in `services/shares.js`. Chan
 - Plain JavaScript, JSX for components, CommonJS (`require`/`module.exports`) on the backend, ESM imports on the frontend.
 - `@/*` maps to `frontend/src/*` (see `frontend/jsconfig.json`).
 - `'use client'` only where hooks/browser APIs are needed; pages stay server components.
-- Styling is inline `style` objects plus Radix Themes components; no CSS framework.
+- Styling is Tailwind utility classes plus shadcn/base-ui primitives. Shared design tokens (warm neutral palette, radius, motion) live in `globals.css`; long-form rendered markdown uses the `.md-content` styles there.
+- The public list, reader and landing all share `ShareContent` for markdown rendering. Fenced code blocks are highlighted with `rehype-highlight`.
 - Error handling mirrors the API envelope in both apps.
 
 ## Known rough edges (useful when modernizing)
 
-- No tests, lint config beyond `next lint`, or CI.
+- No tests, lint config, or CI.
 - `vercel.json` uses the legacy `builds`/`routes` format.
 - `isPrivate` IP check is incomplete (e.g. only `172.16.`, no IPv6 or `172.17–31`).
-- Frontend reader and home page duplicate share-card/formatting logic; no loading/error boundaries.
+- The landing hero animation loops while it is in view and falls back to a static final frame for `prefers-reduced-motion`.
 - A share can be up to the 4mb request limit and is rendered client-side in one go, so very large documents freeze the reader.
-- Dependencies are from 2024 (Next 14, React 18, Express 4, Mongoose 8, uuid 9).
+- The frontend is on Next 16 / React 19; backend dependencies (Express 4, Mongoose 8, uuid 9) are older.
