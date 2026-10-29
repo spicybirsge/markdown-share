@@ -8,18 +8,16 @@ const cors = require('cors');
 const axios = require("axios");
 
 const errorHandler = require('./middleware/errorHandler');
-require('./database/connector')();
+const config = require('./config');
+const { connectDB } = require('./database/connector');
 
 const app = express();
-// Vercel caps request bodies at 4MB. express.json defaults to 100kb, so pin the
-// limit explicitly to keep local, self-hosted and serverless behaving the same.
-const JSON_BODY_LIMIT = '4mb';
-app.use(express.json({ limit: JSON_BODY_LIMIT }));
-app.use(express.urlencoded({ extended: false, limit: JSON_BODY_LIMIT }));
+app.use(express.json({ limit: config.jsonBodyLimit }));
+app.use(express.urlencoded({ extended: false, limit: config.jsonBodyLimit }));
 app.use(logger('combined'));
 app.use(cors());
 app.set('json spaces', 1)
-if(process.env.NODE_ENV === 'production') {
+if(config.isProduction) {
     app.set('trust proxy', true); 
 }
 
@@ -96,7 +94,18 @@ app.all('*', async (req, res) => {
 app.use(errorHandler);
 
 
-const PORT = process.env.PORT || 5050;
-app.listen(PORT, () => {
-    console.log(`[^] Server is running on port ${PORT} in ${process.env.NODE_ENV || "developement"} mode`);
-})
+const PORT = config.port;
+
+module.exports = app;
+
+// Imported by the serverless platform, where the request handler is the export
+// above and the process never listens on a port.
+if (require.main === module) {
+    connectDB().catch((error) => {
+        console.error('[x] Database connection failed:', error.message);
+    });
+
+    app.listen(PORT, () => {
+        console.log(`[^] Server is running on port ${PORT} in ${config.env} mode`);
+    })
+}

@@ -1,6 +1,7 @@
 const uuid = require('uuid');
 const shares = require('../database/schemas/shares');
 const generateRandomName = require('../functions/generateRandomName');
+const { connectDB } = require('../database/connector');
 const AppError = require('../functions/AppError');
 
 // Domain rules, kept next to the logic that enforces them so the REST routes
@@ -107,6 +108,8 @@ function resolveLimit(raw) {
 }
 
 async function createShare(input = {}) {
+    await connectDB();
+
     let title = normalizeText(input.title);
     let description = normalizeText(input.description);
     const content = input.content;
@@ -185,6 +188,8 @@ async function createShare(input = {}) {
 }
 
 async function getShare(id, options = {}) {
+    await connectDB();
+
     if (!id || typeof id !== 'string') {
         throw AppError.badRequest('id is required');
     }
@@ -206,6 +211,8 @@ async function getShare(id, options = {}) {
 }
 
 async function listShares(options = {}) {
+    await connectDB();
+
     const limit = resolveLimit(options.limit);
 
     // note: mongoose treats .limit(0) as "no limit", so short circuit instead

@@ -38,7 +38,13 @@ const errorHandler = (error, req, res, next) => {
     }
 
     if (status >= 500) {
-        console.error(error);
+        // A known failure (database down, misconfigured environment) only needs
+        // one line; anything else is a bug and keeps its stack.
+        if (error instanceof AppError) {
+            console.error(`[x] ${message}`);
+        } else {
+            console.error(error);
+        }
     }
 
     return res.status(status).json({
