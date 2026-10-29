@@ -1,0 +1,29 @@
+# Markdown Share
+
+> Turn plain markdown into clean, permanent pages. Write it yourself, or let your agent publish it over MCP. No account required; shares are unlisted by default.
+
+Agents can publish and read shares through the Model Context Protocol.
+
+- Endpoint: https://api.markdownshare.shaheerahamed.com/mcp
+- Transport: Streamable HTTP, stateless (one JSON-RPC message per POST, JSON responses)
+- Authentication: none, no API keys or accounts
+- `create_share({ content, title?, description?, idempotencyKey? })`: publishes markdown and returns a link. Content is required (max 4 MB). Title and description are truncated to 70 and 180 characters. `idempotencyKey` must be a UUID; replaying it returns the original share. Shares created over MCP are always unlisted.
+- `get_share(id)`: reads a share by id and returns it as text. Never increments the view count.
+
+To connect in a client that supports Streamable HTTP, add a server named `markdown-share` with `"type": "http"` and the endpoint URL above. In Claude Code: `claude mcp add --transport http markdown-share https://api.markdownshare.shaheerahamed.com/mcp`
+
+Suggested agent prompt: when asked to share, publish, or hand off a markdown document, call `create_share` with the full document and a short title, then return the link. Use `get_share` when given a Markdown Share link.
+
+All REST responses use the envelope `{ success, message, code, data? }`.
+
+## API
+
+- [Create share](https://markdownshare.shaheerahamed.com/api/v1/create/share): POST with body `{ content, isUnlisted, title?, description?, idempotencyKey? }`
+- [Read share](https://markdownshare.shaheerahamed.com/api/v1/read/share): GET with `?id=<uuid>`, returns one share with its content
+- [Latest shares](https://markdownshare.shaheerahamed.com/api/v1/read/latest-shares): GET with `?limit=<n>`, public shares newest first (default 28, max 100)
+
+## Web
+
+- [Landing page and editor](https://markdownshare.shaheerahamed.com/): landing page, agent demo and editor
+- [Create a share](https://markdownshare.shaheerahamed.com/new): create a share in the browser
+- [Public shares](https://markdownshare.shaheerahamed.com/list): public shares, newest first

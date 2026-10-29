@@ -24,6 +24,7 @@ if(config.isProduction) {
 
 app.use('/api/v1/create', require('./routes/v1/create'));
 app.use('/api/v1/read', require('./routes/v1/read'));
+app.use('/mcp', require('./routes/mcp'));
 
 app.get("/proxy", async(req, res) => {
      try {
