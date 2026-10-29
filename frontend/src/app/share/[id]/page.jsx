@@ -1,12 +1,21 @@
 import Share from "@/components/Share"
 import variables from "@/variables/variables";
 import { notFound } from 'next/navigation'
-export async function generateMetadata({ params}) {
-    const url = variables.BACKEND_URL+"/api/v1/read/share?metafetch=true&id="+params.id;
-    const request = await fetch(url, {
+
+// Next 15+ passes route params to server components as a Promise, so they must
+// be awaited before use. Reading params.id directly yields undefined, which
+// made both the metadata fetch and the client reader request ?id=undefined.
+export async function generateMetadata({ params }) {
+    const { id } = await params;
+    const url = variables.BACKEND_URL+"/api/v1/read/share?metafetch=true&id="+encodeURIComponent(id);
+    const response = await fetch(url, {
         method: 'GET'
-    })
-    const response = await request.json()
+    }).then((request) => request.json()).catch(() => null)
+    if(!response) {
+        return {
+            title: 'Markdown share',
+        }
+    }
     if(!response.success) {
         return notFound()
     }
@@ -32,6 +41,7 @@ return {
   };
 }
 
-export default function Page({params}) {
-    return <Share id={params.id}></Share>
+export default async function Page({params}) {
+    const { id } = await params;
+    return <Share id={id}></Share>
 }
