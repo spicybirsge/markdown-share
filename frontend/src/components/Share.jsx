@@ -118,7 +118,7 @@ export default function Share({ id }) {
   // scroll anchoring while the share data loads. Start each share at the top
   // so the finished document doesn't inherit an offset from the clicked card.
   useLayoutEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [id]);
 
   useEffect(() => {
