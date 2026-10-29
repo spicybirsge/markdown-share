@@ -115,7 +115,8 @@ async function main() {
         check('returns the document as text', text.length > 0);
         check('starts with a pasteable markdown link', /^\[[^\]]+\]\(https?:\/\/\S+\/share\/[\w-]+\)/.test(text), text.slice(0, 80));
         check('returns structured content', result.structuredContent?.id === target._id);
-        check('structured content carries the body', typeof result.structuredContent?.content === 'string');
+        check('structured content reports the body size', typeof result.structuredContent?.contentBytes === 'number');
+        check('the body is not duplicated in structured content', result.structuredContent?.content === undefined);
 
         if (before !== null && before !== undefined) {
             const after = await newestPublicShare();
@@ -141,7 +142,10 @@ async function main() {
 
     if (createdShare.id) {
         const readBack = await callTool(5, 'get_share', { id: createdShare.id });
-        check('reads back through get_share', readBack.result?.structuredContent?.content === content);
+        const readText = readBack.result?.content?.[0]?.text || '';
+        check('reads the document back through get_share', readText.includes(content));
+        check('reports the same byte size', readBack.result?.structuredContent?.contentBytes === Buffer.byteLength(content, 'utf8'));
+        check('does not duplicate the document', readBack.result?.structuredContent?.content === undefined);
 
         const provenance = await fetch(`${BASE_URL}/api/v1/read/share?metafetch=true&id=${createdShare.id}`).then(r => r.json());
         check('records mcp provenance', provenance.data?.source === 'mcp', provenance.data?.source);

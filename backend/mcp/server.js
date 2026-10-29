@@ -88,7 +88,10 @@ function buildServer() {
             createdAt: z.string(),
             views: z.number(),
             unlisted: z.boolean(),
-            content: z.string()
+            // The document itself travels in the text block only. Echoing it
+            // here too doubled every response, and a 4 MB share became ~8 MB,
+            // past the serverless response limit.
+            contentBytes: z.number()
         },
         annotations: {
             readOnlyHint: true,
@@ -110,7 +113,7 @@ function buildServer() {
                     createdAt: toIsoDate(share.createdAt) || '',
                     views: share.views,
                     unlisted: share.unlisted,
-                    content: share.content
+                    contentBytes: Buffer.byteLength(share.content, 'utf8')
                 }
             };
         } catch (error) {
