@@ -8,16 +8,16 @@ const cors = require('cors');
 const axios = require("axios");
 
 const errorHandler = require('./middleware/errorHandler');
-require('./database/connector')();
+const config = require('./config');
+const { connectDB } = require('./database/connector');
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: config.jsonBodyLimit }));
+app.use(express.urlencoded({ extended: false, limit: config.jsonBodyLimit }));
 app.use(logger('combined'));
 app.use(cors());
-app.use(errorHandler);
 app.set('json spaces', 1)
-if(process.env.NODE_ENV === 'production') {
+if(config.isProduction) {
     app.set('trust proxy', true); 
 }
 
@@ -89,8 +89,23 @@ app.all('*', async (req, res) => {
 
 })
 
+// Must be registered after every route and the 404 handler to run as error
+// middleware. Placing it earlier makes Express treat it as normal middleware.
+app.use(errorHandler);
 
-const PORT = process.env.PORT || 5050;
-app.listen(PORT, () => {
-    console.log(`[^] Server is running on port ${PORT} in ${process.env.NODE_ENV || "developement"} mode`);
-})
+
+const PORT = config.port;
+
+module.exports = app;
+
+// Imported by the serverless platform, where the request handler is the export
+// above and the process never listens on a port.
+if (require.main === module) {
+    connectDB().catch((error) => {
+        console.error('[x] Database connection failed:', error.message);
+    });
+
+    app.listen(PORT, () => {
+        console.log(`[^] Server is running on port ${PORT} in ${config.env} mode`);
+    })
+}

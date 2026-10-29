@@ -29,27 +29,33 @@ frontend/
   public/assets/media/     logo used by metadata
 
 backend/
-  index.js                 Express app: middleware, /proxy, /status, 404, listen
+  index.js                 Express app: middleware, /proxy, /status, 404, error handler, listen
+  config.js                Environment parsing (port, body limit, publicBaseUrl)
   routes/v1/create.js      POST /api/v1/create/share
   routes/v1/read.js        GET  /api/v1/read/share, /api/v1/read/latest-shares
-  database/connector.js    mongoose.connect(MONGODB_URI)
+  services/shares.js       createShare / getShare / listShares — all share logic and limits
+  database/connector.js    connectDB(): cached mongoose connection promise
   database/schemas/shares.js  Share model (string UUID _id)
+  functions/AppError.js    Error type that is safe to expose to the caller
   functions/generateRandomName.js  fallback title generator
-  middleware/errorHandler.js
+  middleware/asyncHandler.js  Forwards async route rejections to errorHandler
+  middleware/errorHandler.js  Maps AppError and body-parser failures onto the envelope
   vercel.json              Serverless deploy config
 ```
+
+Routes should stay thin: parse input, call a service, format the envelope. Anything with a rule in it belongs in `services/`.
 
 ## Running
 
 ```bash
 # backend (port 5050 by default)
-cd backend && npm install && node index.js
+cd backend && npm install && npm run dev
 
 # frontend (port 3000)
 cd frontend && npm install && npm run dev
 ```
 
-There is no `dev`/`start` script in `backend/package.json`; run `node index.js` directly (or add a script when modernizing).
+`npm run dev` uses `node --watch`; `npm start` runs `node index.js` without watching.
 
 ## Environment variables
 
@@ -57,6 +63,8 @@ Backend:
 - `MONGODB_URI` (required) — Mongo connection string.
 - `PORT` — defaults to `5050`.
 - `NODE_ENV` — `production` enables `trust proxy`; otherwise `.env` is loaded via dotenv.
+- `JSON_BODY_LIMIT` — request body cap, defaults to `4mb` to match the Vercel limit.
+- `PUBLIC_BASE_URL` — frontend origin used when building share links, defaults to the production site.
 
 Frontend (read at module load in `src/variables/variables.js`):
 - `NEXT_PUBLIC_BACKEND_URL` — API origin. The `NEXT_PUBLIC_` prefix is required for the browser bundle to see it; the unprefixed `BACKEND_URL` is still read as a fallback, but only server rendering sees that one.
@@ -64,19 +72,22 @@ Frontend (read at module load in `src/variables/variables.js`):
 
 ## API
 
-All responses share the shape `{ success, message, code, data? }`.
+All responses share the shape `{ success, message, code, data? }`, including failures. `code` is always the HTTP status: `400` invalid input, `404` missing share or route, `413` body over the limit, `503` database unavailable.
 
-- `POST /api/v1/create/share` — body `{ content, isUnlisted, title?, description? }`. `content` required, `isUnlisted` must be boolean, title ≤ 70 chars, description ≤ 180. Missing title is auto-generated. Returns the created share.
-- `GET /api/v1/read/share?id=<uuid>` — returns one share. Increments `views` unless `metafetch` is truthy or the caller IP is already recorded.
-- `GET /api/v1/read/latest-shares?limit=<n>` — public (`unlisted: false`) shares, newest first, default limit 28.
+- `POST /api/v1/create/share` — body `{ content, isUnlisted, title?, description? }`. `content` required, `isUnlisted` must be boolean, title ≤ 70 chars, description ≤ 180. Missing title is auto-generated. Returns the created share. An optional `idempotencyKey` body field or `Idempotency-Key` header makes a retry return the original share instead of a duplicate.
+- `GET /api/v1/read/share?id=<uuid>` — returns one share, including content. Increments the view count unless `metafetch=true` or the caller IP is already recorded.
+- `GET /api/v1/read/latest-shares?limit=<n>` — public (`unlisted: false`) shares, newest first, default limit 28, capped at 100. **No `content` field**: each item carries a 200 character `excerpt` instead.
 - `GET /proxy?url=<https url>` — streams images only; blocks non-HTTPS, private/loopback IPs, and redirects.
 - `GET /status` — health check.
+
+Validation, defaults and the shape of a share live in `services/shares.js`. Change them there, not in the routes.
 
 ## Data flow notes
 
 - Share `_id` is a client-generated UUID string, not a Mongo ObjectId.
 - `createdAt` is stored as a timestamp (number) but read as a string and multiplied by `*1` in the frontend.
-- `views` is an array of IPs; the API returns only `views.length`.
+- `views` is an array of IPs; the API returns only `views.length`, so `views` is always a number on the wire.
+- `source` records where a share came from (`web` for the editor, `mcp` for agent clients); `idempotencyKey` is unique and sparse.
 - Server components fetch from `BACKEND_URL`; the reader (`Share.jsx`) fetches client-side, while `generateMetadata` fetches the same share with `metafetch=true` to avoid inflating views.
 - Markdown images are rewritten to go through `PROXY_URL/proxy?url=` by `replaceWithProxy`, both on save and on render.
 - Rendered markdown is sanitized with `rehype-sanitize`.
@@ -92,10 +103,8 @@ All responses share the shape `{ success, message, code, data? }`.
 ## Known rough edges (useful when modernizing)
 
 - No tests, lint config beyond `next lint`, or CI.
-- Backend has no `dev`/`start` scripts and `vercel.json` uses the legacy `builds`/`routes` format.
-- `errorHandler` is registered before routes, so it never runs as Express error middleware.
+- `vercel.json` uses the legacy `builds`/`routes` format.
 - `isPrivate` IP check is incomplete (e.g. only `172.16.`, no IPv6 or `172.17–31`).
-- `latest-shares` error path returns `code: 200` for a 400 response.
 - Frontend reader and home page duplicate share-card/formatting logic; no loading/error boundaries.
-- `create/share` trusts `content` size; no payload limit beyond Express defaults.
+- A share can be up to the 4mb request limit and is rendered client-side in one go, so very large documents freeze the reader.
 - Dependencies are from 2024 (Next 14, React 18, Express 4, Mongoose 8, uuid 9).

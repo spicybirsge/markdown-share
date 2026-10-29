@@ -1,52 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const shares = require("../../database/schemas/shares")
-const uuid = require("uuid");
-const generateRandomName = require ('../../functions/generateRandomName');
+const { createShare } = require('../../services/shares');
+const asyncHandler = require('../../middleware/asyncHandler');
 
-router.post("/share", async(req, res) => {
-    try {
-        const { content, isUnlisted} = req.body;
-        let {title, description} = req.body;
-        if(!content) {
-            return res.status(400).json({success: false, message: "content is required", code: 400})
-        }
+router.post('/share', asyncHandler(async (req, res) => {
+    const body = req.body || {};
 
-        if(typeof isUnlisted !== "boolean") {
-            return res.status(400).json({success: false, message: "isUnlisted should be boolean", code: 400})
-        }
-        if(!title) {
-            title = generateRandomName()
-        }
-        if(!description) {
-            description = null;
-        }
+    const { share } = await createShare({
+        content: body.content,
+        title: body.title,
+        description: body.description,
+        isUnlisted: body.isUnlisted,
+        // lets a client retry a create safely after a timeout
+        idempotencyKey: body.idempotencyKey || req.get('Idempotency-Key')
+    });
 
-        if(title && title.length > 70) {
-            return res.status(400).json({success: false, message: "title exceeds max content length", code: 400})
-        }
-
-        if(description && description.length > 180) {
-            return res.status(400).json({success: false, message: "description exceeds max content length", code: 400})
-        }
-
-        const shareId = uuid.v4();
-        const shareObject = {
-            _id: shareId,
-            title: title,
-            description: description,
-            content: content,
-            createdAt: Date.now(),
-            views: [],
-            unlisted: isUnlisted
-        }
-        await shares.create(shareObject)
-        return res.status(200).json({success: true, message: "share created", data: shareObject, code: 200})
-
-    } catch(e) {
-        console.error(e)
-        return res.status(500).json({success: false, message: "internal server error", code: 500})
-    }
-})
+    return res.status(200).json({ success: true, message: "share created", data: share, code: 200 });
+}));
 
 module.exports = router;
