@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import ShareContent from "@/components/ShareContent";
+import SubmitHint from "@/components/SubmitHint";
 import replaceWithProxy from "@/functions/replaceWithProxy";
 import variables from "@/variables/variables";
 import { cn } from "@/lib/utils";
@@ -278,9 +279,7 @@ export default function ShareComposer({ className }) {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="hidden font-mono text-[11px] text-muted-foreground sm:inline">
-              ⌘↵
-            </span>
+            <SubmitHint className="hidden sm:inline-flex" />
             <Button
               type="submit"
               disabled={creating}

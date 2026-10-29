@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL || "https://markdownshare.shaheerahamed.com";
 const description =
-  "Markdown Share turns plain markdown into clean, permanent pages. Write it yourself, or let your agent publish it over MCP.";
+  "The agentic markdown sharing platform. Share content directly with the markdown share MCP or paste your content via our UI!";
 
 export const metadata = {
   metadataBase: new URL(siteUrl),

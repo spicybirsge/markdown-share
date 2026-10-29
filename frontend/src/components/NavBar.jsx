@@ -9,9 +9,10 @@ import GithubIcon from "@/components/GithubIcon";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
+
   { href: "/list", label: "Public shares" },
   { href: "/#mcp", label: "MCP" },
-  { href: "/new", label: "Create" },
+ 
 ];
 
 export default function NavBar() {

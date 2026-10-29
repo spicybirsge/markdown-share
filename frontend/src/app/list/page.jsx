@@ -3,6 +3,7 @@ import { ArrowUpRight, FileText } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import TimeAgo from "@/components/TimeAgo";
+import SourceBadge from "@/components/SourceBadge";
 import variables from "@/variables/variables";
 
 export const dynamic = "force-dynamic";
@@ -38,12 +39,10 @@ function ShareCard({ share }) {
   return (
     <Link
       href={`/share/${share._id}`}
-      className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/25 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:p-6"
+      className="group flex h-full min-h-[14.5rem] min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/25 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:p-6"
     >
       <div className="flex items-center justify-between gap-4">
-        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          {share.source === "mcp" ? "Agent share" : "Public share"}
-        </span>
+        <SourceBadge source={share.source} />
         <ArrowUpRight className="size-4 text-muted-foreground transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
       </div>
 
@@ -51,7 +50,7 @@ function ShareCard({ share }) {
         {share.title || "Untitled share"}
       </h2>
 
-      <p className="mt-2 line-clamp-3 break-words text-[13.5px] leading-6 text-muted-foreground">
+      <p className="mt-2 line-clamp-2 break-words text-[13.5px] leading-6 text-muted-foreground">
         {share.description || share.excerpt || "No description."}
       </p>
 
@@ -76,7 +75,7 @@ export default async function ListPage() {
         <div className="flex flex-col gap-6 border-b border-border pb-8 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-              Public library
+              Public List
             </p>
             <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
               Public shares
@@ -86,13 +85,7 @@ export default async function ListPage() {
               unlisted.
             </p>
           </div>
-          <Link
-            href="/new"
-            className="inline-flex h-10 shrink-0 items-center gap-2 self-start rounded-full bg-foreground px-5 text-sm font-medium text-background transition-colors hover:bg-foreground/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:self-auto"
-          >
-            Create a share
-            <ArrowUpRight className="size-4" />
-          </Link>
+        
         </div>
 
         {error ? (

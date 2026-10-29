@@ -17,6 +17,7 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import ShareContent from "@/components/ShareContent";
 import TimeAgo from "@/components/TimeAgo";
+import SourceBadge from "@/components/SourceBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import variables from "@/variables/variables";
 import timeStampToDate from "@/functions/timeStampToDate";
@@ -234,6 +235,7 @@ export default function Share({ id }) {
             <span className="rounded-full border border-border bg-card px-2.5 py-1">
               {share.unlisted ? "Unlisted" : "Public"}
             </span>
+            <SourceBadge source={share.source} />
             <span className="size-0.5 rounded-full bg-muted-foreground/60" />
             <span className="normal-case tracking-normal">
               <TimeAgo date={share.createdAt * 1} />
