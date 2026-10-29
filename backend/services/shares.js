@@ -9,7 +9,11 @@ const LIMITS = {
     title: 70,
     description: 180,
     listDefault: 28,
-    listMax: 100
+    listMax: 100,
+    // characters of raw markdown pulled from the document for a list excerpt
+    excerptSource: 500,
+    // characters of plain text kept in the excerpt
+    excerpt: 200
 };
 
 function normalizeText(value) {
@@ -28,6 +32,41 @@ function toShare(share) {
         title: share.title,
         description: share.description,
         content: share.content,
+        createdAt: share.createdAt,
+        views: Array.isArray(share.views) ? share.views.length : 0,
+        unlisted: share.unlisted
+    }
+}
+
+// List views get a plain text preview instead of the document itself. A share
+// can be megabytes of markdown, and the home page only ever renders title,
+// description and a timestamp.
+function toExcerpt(raw) {
+    if (!raw) {
+        return null;
+    }
+
+    const plain = raw
+        .replace(/```[\s\S]*?```/g, ' ')
+        .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+        .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+        .replace(/[#>*_`~|-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    if (plain.length <= LIMITS.excerpt) {
+        return plain;
+    }
+
+    return plain.slice(0, LIMITS.excerpt).trimEnd() + '…';
+}
+
+function toListItem(share) {
+    return {
+        _id: share._id,
+        title: share.title,
+        description: share.description,
+        excerpt: toExcerpt(share.excerpt),
         createdAt: share.createdAt,
         views: Array.isArray(share.views) ? share.views.length : 0,
         unlisted: share.unlisted
@@ -117,8 +156,25 @@ async function listShares(options = {}) {
         return [];
     }
 
-    const latestShares = await shares.find({ unlisted: false }).sort({ createdAt: -1 }).limit(limit);
-    return latestShares.map(toShare);
+    // Aggregation projects only the head of each document, so a list request
+    // never drags megabytes of markdown out of the database.
+    const latestShares = await shares.aggregate([
+        { $match: { unlisted: false } },
+        { $sort: { createdAt: -1 } },
+        { $limit: limit },
+        {
+            $project: {
+                title: 1,
+                description: 1,
+                createdAt: 1,
+                unlisted: 1,
+                views: 1,
+                excerpt: { $substrCP: [{ $ifNull: ['$content', ''] }, 0, LIMITS.excerptSource] }
+            }
+        }
+    ]);
+
+    return latestShares.map(toListItem);
 }
 
 module.exports = {
