@@ -22,13 +22,7 @@ export default function New() {
               images and checklists all work.
             </p>
           </div>
-          <Link
-            href="/list"
-            className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Public shares
-            <ArrowUpRight className="size-3.5" />
-          </Link>
+        
         </div>
 
         <ShareComposer />
