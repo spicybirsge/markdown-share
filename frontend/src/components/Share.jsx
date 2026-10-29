@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -113,6 +113,13 @@ export default function Share({ id }) {
   const [status, setStatus] = useState("loading");
   const [attempt, setAttempt] = useState(0);
   const [copied, setCopied] = useState(false);
+
+  // Replacing the list with the reader's loading state can trigger browser
+  // scroll anchoring while the share data loads. Start each share at the top
+  // so the finished document doesn't inherit an offset from the clicked card.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
 
   useEffect(() => {
     const controller = new AbortController();
