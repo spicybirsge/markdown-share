@@ -82,8 +82,10 @@ function buildServer() {
             id: z.string(),
             url: z.string(),
             title: z.string(),
-            description: z.string().nullish(),
-            createdAt: z.union([z.string(), z.number()]).nullish(),
+            // Single types on purpose: nullable unions serialise to an array
+            // form (`type: ["string","null"]`) that some clients reject.
+            description: z.string(),
+            createdAt: z.string(),
             views: z.number(),
             unlisted: z.boolean(),
             content: z.string()
@@ -104,8 +106,8 @@ function buildServer() {
                     id: share._id,
                     url: shareUrl(share._id),
                     title: share.title,
-                    description: share.description,
-                    createdAt: share.createdAt,
+                    description: share.description || '',
+                    createdAt: toIsoDate(share.createdAt) || '',
                     views: share.views,
                     unlisted: share.unlisted,
                     content: share.content
@@ -136,8 +138,8 @@ function buildServer() {
             id: z.string(),
             url: z.string(),
             title: z.string(),
-            description: z.string().nullish(),
-            createdAt: z.union([z.string(), z.number()]).nullish(),
+            description: z.string(),
+            createdAt: z.string(),
             unlisted: z.boolean(),
             replayed: z.boolean()
         },
@@ -177,8 +179,8 @@ function buildServer() {
                     id: share._id,
                     url,
                     title: share.title,
-                    description: share.description,
-                    createdAt: share.createdAt,
+                    description: share.description || '',
+                    createdAt: toIsoDate(share.createdAt) || '',
                     unlisted: share.unlisted,
                     replayed
                 }

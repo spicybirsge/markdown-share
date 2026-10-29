@@ -9,7 +9,7 @@
 
 const crypto = require('crypto');
 
-const BASE_URL = (process.env.MCP_BASE_URL || 'http://localhost:5055').replace(/\/+$/, '');
+const BASE_URL = (process.env.MCP_BASE_URL || 'http://localhost:5050').replace(/\/+$/, '');
 
 let failures = 0;
 
