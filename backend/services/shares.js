@@ -13,7 +13,14 @@ const LIMITS = {
     // characters of raw markdown pulled from the document for a list excerpt
     excerptSource: 500,
     // characters of plain text kept in the excerpt
-    excerpt: 200
+    excerpt: 200,
+    // length of a client supplied idempotency key
+    idempotencyKey: 200
+};
+
+const SOURCES = {
+    web: 'web',
+    mcp: 'mcp'
 };
 
 function normalizeText(value) {
@@ -22,6 +29,19 @@ function normalizeText(value) {
     }
     const trimmed = value.trim();
     return trimmed.length > 0 ? trimmed : undefined;
+}
+
+// An empty or non string key means "not idempotent", not "reject the request".
+function normalizeIdempotencyKey(value) {
+    const key = normalizeText(value);
+    if (!key) {
+        return undefined;
+    }
+    return key.slice(0, LIMITS.idempotencyKey);
+}
+
+function resolveSource(value) {
+    return value === SOURCES.mcp ? SOURCES.mcp : SOURCES.web;
 }
 
 // Single place that decides what a share looks like on the wire, so create and
@@ -34,7 +54,8 @@ function toShare(share) {
         content: share.content,
         createdAt: share.createdAt,
         views: Array.isArray(share.views) ? share.views.length : 0,
-        unlisted: share.unlisted
+        unlisted: share.unlisted,
+        source: share.source || SOURCES.web
     }
 }
 
@@ -69,7 +90,8 @@ function toListItem(share) {
         excerpt: toExcerpt(share.excerpt),
         createdAt: share.createdAt,
         views: Array.isArray(share.views) ? share.views.length : 0,
-        unlisted: share.unlisted
+        unlisted: share.unlisted,
+        source: share.source || SOURCES.web
     }
 }
 
@@ -87,7 +109,11 @@ function resolveLimit(raw) {
 async function createShare(input = {}) {
     let title = normalizeText(input.title);
     let description = normalizeText(input.description);
-    const { content, isUnlisted } = input;
+    const content = input.content;
+    const { isUnlisted } = input;
+    const source = resolveSource(input.source);
+    const clientName = normalizeText(input.clientName);
+    const idempotencyKey = normalizeIdempotencyKey(input.idempotencyKey);
 
     if (!content) {
         throw AppError.badRequest('content is required');
@@ -95,6 +121,16 @@ async function createShare(input = {}) {
 
     if (typeof isUnlisted !== 'boolean') {
         throw AppError.badRequest('isUnlisted should be boolean');
+    }
+
+    // A retried create returns the original share instead of a duplicate. The
+    // lookup happens before validation so a replay succeeds even if the caller
+    // resends slightly different metadata.
+    if (idempotencyKey) {
+        const existing = await shares.findOne({ idempotencyKey });
+        if (existing) {
+            return { share: toShare(existing), replayed: true };
+        }
     }
 
     if (!title) {
@@ -120,11 +156,32 @@ async function createShare(input = {}) {
         content: content,
         createdAt: Date.now(),
         views: [],
-        unlisted: isUnlisted
+        unlisted: isUnlisted,
+        source: source
     }
 
-    await shares.create(share);
-    return toShare(share);
+    if (clientName) {
+        share.clientName = clientName;
+    }
+
+    if (idempotencyKey) {
+        share.idempotencyKey = idempotencyKey;
+    }
+
+    try {
+        await shares.create(share);
+    } catch (error) {
+        // Two concurrent calls with the same key: the loser returns the winner.
+        if (idempotencyKey && error && error.code === 11000) {
+            const existing = await shares.findOne({ idempotencyKey });
+            if (existing) {
+                return { share: toShare(existing), replayed: true };
+            }
+        }
+        throw error;
+    }
+
+    return { share: toShare(share), replayed: false };
 }
 
 async function getShare(id, options = {}) {
@@ -169,6 +226,7 @@ async function listShares(options = {}) {
                 createdAt: 1,
                 unlisted: 1,
                 views: 1,
+                source: 1,
                 excerpt: { $substrCP: [{ $ifNull: ['$content', ''] }, 0, LIMITS.excerptSource] }
             }
         }
@@ -181,5 +239,6 @@ module.exports = {
     createShare,
     getShare,
     listShares,
-    LIMITS
+    LIMITS,
+    SOURCES
 };
