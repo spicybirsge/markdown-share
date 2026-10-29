@@ -16,7 +16,12 @@ const LIMITS = {
     // characters of plain text kept in the excerpt
     excerpt: 200,
     // length of a client supplied idempotency key
-    idempotencyKey: 200
+    idempotencyKey: 200,
+    // bytes of markdown accepted for one share. Matches config.jsonBodyLimit, so
+    // the HTTP layer rejects anything larger before this check can fire; it
+    // exists so direct callers of the service (scripts, a future stdio shim)
+    // get the same ceiling and the same message.
+    content: 4 * 1024 * 1024
 };
 
 const SOURCES = {
@@ -43,6 +48,42 @@ function normalizeIdempotencyKey(value) {
 
 function resolveSource(value) {
     return value === SOURCES.mcp ? SOURCES.mcp : SOURCES.web;
+}
+
+function formatBytes(bytes) {
+    if (bytes < 1024) {
+        return `${bytes} B`;
+    }
+    const kb = bytes / 1024;
+    if (kb < 1024) {
+        return `${Math.round(kb)} KB`;
+    }
+    return `${(kb / 1024).toFixed(1)} MB`;
+}
+
+// Agents pass stray headings and essays where a title belongs. Rejecting the
+// whole create over four extra characters is a bad trade, so the service trims
+// to the limit instead of failing. The web UI already caps input at the same
+// numbers, so this only ever affects callers that do not.
+function truncate(value, max) {
+    if (value.length <= max) {
+        return value;
+    }
+    return value.slice(0, max).trimEnd();
+}
+
+// A share published without a title still deserves a real one. Prefer the first
+// markdown heading over a generated name.
+function titleFromContent(content) {
+    if (typeof content !== 'string') {
+        return undefined;
+    }
+    const match = content.match(/^\s{0,3}#{1,6}[ \t]+(.+?)[ \t]*#*[ \t]*$/m);
+    if (!match) {
+        return undefined;
+    }
+    const heading = match[1].replace(/[*_`~]/g, '').trim();
+    return heading.length > 0 ? heading : undefined;
 }
 
 // Single place that decides what a share looks like on the wire, so create and
@@ -122,6 +163,17 @@ async function createShare(input = {}) {
         throw AppError.badRequest('content is required');
     }
 
+    if (typeof content !== 'string') {
+        throw AppError.badRequest('content should be a string');
+    }
+
+    const contentBytes = Buffer.byteLength(content, 'utf8');
+    if (contentBytes > LIMITS.content) {
+        throw AppError.tooLarge(
+            `content is ${formatBytes(contentBytes)}, the limit is ${formatBytes(LIMITS.content)} — summarize or split the document`
+        );
+    }
+
     if (typeof isUnlisted !== 'boolean') {
         throw AppError.badRequest('isUnlisted should be boolean');
     }
@@ -137,19 +189,17 @@ async function createShare(input = {}) {
     }
 
     if (!title) {
-        title = generateRandomName();
+        title = titleFromContent(content) || generateRandomName();
     }
 
-    if (title.length > LIMITS.title) {
-        throw AppError.badRequest('title exceeds max content length');
-    }
+    title = truncate(title, LIMITS.title);
 
     if (!description) {
         description = null;
     }
 
-    if (description && description.length > LIMITS.description) {
-        throw AppError.badRequest('description exceeds max content length');
+    if (description) {
+        description = truncate(description, LIMITS.description);
     }
 
     const share = {
