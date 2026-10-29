@@ -3,7 +3,11 @@ Welcome to markdown share, and alternative to the usual codebins. Here instead o
 # Technologies used
 For frontend and ssr I used `nextjs` with `radix-ui` and for the database I used `mongodb` and for the backend I used `expressjs`.
 # MCP
-The backend exposes a read-only [MCP](https://modelcontextprotocol.io) server at `POST /mcp` (Streamable HTTP, stateless), so agents can read a share by id. The only tool is `get_share`.
+The backend exposes an [MCP](https://modelcontextprotocol.io) server at `POST /mcp` (Streamable HTTP, stateless), so agents can publish and read markdown shares.
+
+Tools:
+- `create_share` — publish markdown and get back a ready-to-paste link. Shares are always unlisted: only people with the link can open them.
+- `get_share` — read a share back by id.
 
 ```json
 {
@@ -16,6 +20,6 @@ The backend exposes a read-only [MCP](https://modelcontextprotocol.io) server at
 }
 ```
 
-The endpoint cannot create, edit or delete shares.
+The endpoint cannot edit or delete shares.
 # Contributing
 Got any contribution? feel free to submit a PR.

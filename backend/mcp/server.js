@@ -1,7 +1,7 @@
 const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
 const { z } = require('zod');
 const config = require('../config');
-const { getShare } = require('../services/shares');
+const { getShare, createShare } = require('../services/shares');
 const AppError = require('../functions/AppError');
 
 // Phase 1 of the MCP plan is read-only: the only tool here can read a share.
@@ -13,9 +13,11 @@ const SERVER_INFO = {
 };
 
 const INSTRUCTIONS = [
-    'Read-only access to Markdown Share, a site that renders shared markdown documents.',
-    'Use get_share when the user gives you a markdownshare share id or link and you need the document.',
-    'This server cannot create, edit or delete shares.'
+    'Markdown Share publishes markdown documents to permanent, shareable read-only pages.',
+    'Use create_share when the user asks to share or publish markdown, or when you have produced a long report, plan or spec that would be painful to read in chat.',
+    'Created shares are always unlisted: only people with the link can open them.',
+    'Use get_share to read a share back by id.',
+    'This server cannot edit or delete shares.'
 ].join(' ');
 
 function shareUrl(id) {
@@ -47,6 +49,20 @@ function formatShare(share) {
     // The first line is a ready to paste markdown link, so an agent can drop it
     // into a conversation without rebuilding the URL itself.
     return `[${share.title}](${url})\n${description}${meta}\n\n${share.content}`;
+}
+
+// AppError messages are written to be safe for the caller, which for an MCP
+// tool means safe to relay back to the model. Anything else is a bug: the detail
+// stays in the server log and the agent gets a generic message.
+function toToolError(error, action) {
+    if (error instanceof AppError) {
+        return { isError: true, content: [{ type: 'text', text: error.message }] };
+    }
+    console.error(`[x] mcp ${action} failed:`, error);
+    return {
+        isError: true,
+        content: [{ type: 'text', text: `internal error while ${action}` }]
+    };
 }
 
 function buildServer() {
@@ -98,14 +114,77 @@ function buildServer() {
         } catch (error) {
             // AppError messages are written to be safe for the caller, which for
             // an MCP tool means safe to relay back to the model.
-            if (error instanceof AppError) {
-                return { isError: true, content: [{ type: 'text', text: error.message }] };
+            return toToolError(error, 'reading the share');
+        }
+    });
+
+    server.registerTool('create_share', {
+        title: 'Publish a markdown share',
+        description:
+            'Publish a markdown document to a permanent, shareable read-only page and return its link. ' +
+            'Use when the user asks to share or publish markdown, or when you have produced a long report, ' +
+            'plan, spec or explanation that would be painful to read in chat. ' +
+            'The page is always unlisted: only people with the link can open it. ' +
+            'Returns a ready-to-paste markdown link.',
+        inputSchema: {
+            content: z.string().min(1).describe('The markdown document to publish, up to 4 MB.'),
+            title: z.string().optional().describe('Optional. Defaults to the first markdown heading, or a generated name. Truncated to 70 characters.'),
+            description: z.string().optional().describe('Optional one line summary. Truncated to 180 characters.'),
+            idempotencyKey: z.string().uuid().optional().describe('Optional UUID. Resend the same key when retrying so a timeout does not create a duplicate share.')
+        },
+        outputSchema: {
+            id: z.string(),
+            url: z.string(),
+            title: z.string(),
+            description: z.string().nullish(),
+            createdAt: z.union([z.string(), z.number()]).nullish(),
+            unlisted: z.boolean(),
+            replayed: z.boolean()
+        },
+        annotations: {
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: true,
+            openWorldHint: false
+        }
+    }, async ({ content, title, description, idempotencyKey }) => {
+        try {
+            const { share, replayed } = await createShare({
+                content,
+                title,
+                description,
+                // Forced, not a parameter: the Phase 0 decision is that agent
+                // created shares never appear on the home page.
+                isUnlisted: true,
+                source: 'mcp',
+                idempotencyKey
+            });
+
+            const url = shareUrl(share._id);
+            const lines = [
+                `[${share.title}](${url})`,
+                '',
+                'Unlisted: anyone with the link can read it. It is not listed on the site.'
+            ];
+
+            if (replayed) {
+                lines.push('This request matched an earlier create with the same idempotency key, so the original share is returned.');
             }
-            console.error('[x] mcp get_share failed:', error);
+
             return {
-                isError: true,
-                content: [{ type: 'text', text: 'internal error while reading the share' }]
+                content: [{ type: 'text', text: lines.join('\n') }],
+                structuredContent: {
+                    id: share._id,
+                    url,
+                    title: share.title,
+                    description: share.description,
+                    createdAt: share.createdAt,
+                    unlisted: share.unlisted,
+                    replayed
+                }
             };
+        } catch (error) {
+            return toToolError(error, 'publishing the share');
         }
     });
 

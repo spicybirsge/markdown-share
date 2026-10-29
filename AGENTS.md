@@ -79,7 +79,7 @@ Frontend (read at module load in `src/variables/variables.js`):
 
 All responses share the shape `{ success, message, code, data? }`, including failures. `code` is always the HTTP status: `400` invalid input, `404` missing share or route, `413` body over the limit, `503` database unavailable.
 
-- `POST /api/v1/create/share` — body `{ content, isUnlisted, title?, description? }`. `content` required, `isUnlisted` must be boolean, title ≤ 70 chars, description ≤ 180. Missing title is auto-generated. Returns the created share. An optional `idempotencyKey` body field or `Idempotency-Key` header makes a retry return the original share instead of a duplicate.
+- `POST /api/v1/create/share` — body `{ content, isUnlisted, title?, description? }`. `content` required (string, ≤ 4 MB, matching `JSON_BODY_LIMIT`), `isUnlisted` must be boolean. Title and description are **truncated** to 70 and 180 characters rather than rejected. A missing title is taken from the first markdown heading, falling back to a generated name. Returns the created share. An optional `idempotencyKey` body field or `Idempotency-Key` header makes a retry return the original share instead of a duplicate.
 - `GET /api/v1/read/share?id=<uuid>` — returns one share, including content. Increments the view count unless `metafetch=true` or the caller IP is already recorded.
 - `GET /api/v1/read/latest-shares?limit=<n>` — public (`unlisted: false`) shares, newest first, default limit 28, capped at 100. **No `content` field**: each item carries a 200 character `excerpt` instead.
 - `GET /proxy?url=<https url>` — streams images only; blocks non-HTTPS, private/loopback IPs, and redirects.
@@ -88,9 +88,10 @@ All responses share the shape `{ success, message, code, data? }`, including fai
 ### MCP
 
 - `POST /mcp` — MCP Streamable HTTP, stateless (`sessionIdGenerator: undefined`, JSON responses). One JSON-RPC message per POST; `GET` and `DELETE` return `405` because there is no session to resume or terminate. Mounted on the same Express app, so `vercel.json` needs no change.
-- Read-only in v1: the only tool is `get_share(id)`, which returns the document as text (first line is a pasteable `[title](url)` link) plus `structuredContent`. It reads through `getShare(id, { countView: false })`, so MCP reads never inflate views.
-- Tool errors come back as `isError: true` with the `AppError` message, which is written to be safe to relay to a model.
-- `scripts/mcp-smoke.js` asserts the tool list, a read roundtrip, the view counter, a missing id, and the `405`.
+- `get_share(id)` is read-only and returns the document as text (first line is a pasteable `[title](url)` link) plus `structuredContent`. It reads through `getShare(id, { countView: false })`, so MCP reads never inflate views.
+- `create_share({ content, title?, description?, idempotencyKey? })` publishes through the same `createShare()` the REST route uses, with `source: 'mcp'`. **`isUnlisted` is forced to `true` and is not a parameter** — agent-created shares never appear on `/`. `idempotencyKey` must be a UUID; a replay returns the original share with `replayed: true`.
+- Tool errors come back as `isError: true` with the `AppError` message, which is written to be safe to relay to a model. A body over `JSON_BODY_LIMIT` fails earlier, as a `413` API envelope.
+- `scripts/mcp-smoke.js` asserts the tool list, read and create roundtrips, provenance, the view counter, idempotent replay, truncation, the size ceiling and the `405`.
 
 Validation, defaults and the shape of a share live in `services/shares.js`. Change them there, not in the routes.
 
