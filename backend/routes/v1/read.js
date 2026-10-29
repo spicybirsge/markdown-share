@@ -1,78 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const shares = require("../../database/schemas/shares")
+const { getShare, listShares } = require('../../services/shares');
+const asyncHandler = require('../../middleware/asyncHandler');
 
-router.get("/share", async(req, res) => {
-    try { 
-        const {id} = req.query;
-        let {metafetch} = req.query;
-       
-        if(!id) {
-            return res.status(400).json({success:false, message: "id is required", code: 400})
-        }
-        const share = await shares.findOne({_id: id})
-        if(!share) {
-            return res.status(404).json({success:false, message: "share not found", code: 404})
-        }
-        if(!metafetch) {
-            metafetch = false;
-        }
+// `metafetch` lets the frontend read a share for page metadata without
+// inflating the view count.
+function isTruthy(value) {
+    return value === true || value === 'true' || value === '1';
+}
 
-        if(!metafetch && !share.views.includes(req.ip)) {
-            share.views.push(req.ip)
-            await share.save()
+router.get('/share', asyncHandler(async (req, res) => {
+    const { id, metafetch } = req.query;
 
-        }
-        const shareObject = {
-            _id: share._id,
-            title: share.title,
-            content: share.content,
-            description: share.description,
-            createdAt: share.createdAt,
-            views: share.views.length,
-            unlisted: share.unlisted
-        }
-       
-        return res.status(200).json({success: true, message: "share found", data: shareObject, code: 200})
-     } catch(e) {
-        console.error(e)
-        return res.status(500).json({success: false, message: "internal server error", code: 500})
-    }
-})
+    const share = await getShare(id, {
+        countView: !isTruthy(metafetch),
+        ip: req.ip
+    });
 
-router.get("/latest-shares", async(req, res) => {
-    try { 
-        let {limit} = req.query;
-        
-        if(!limit) {
-            limit = 28
-        }
-        limit = limit*1 
-        if(isNaN(limit)) {
-            return res.status(400).json({success: false, message: "limit should be a number", code: 200})
-        }
-        const latestShares = await shares.find({unlisted: false}).sort({ createdAt: -1 }).limit(limit)
-        const newShares = []
-        for(const sh of latestShares) {
-            const data = {
-                _id: sh._id,
-                title: sh.title,
-                description: sh.description,
-                content: sh.content,
-                createdAt: sh.createdAt,
-                views: sh.views.length,
-                unlisted: sh.unlisted
+    return res.status(200).json({ success: true, message: "share found", data: share, code: 200 });
+}));
 
+router.get('/latest-shares', asyncHandler(async (req, res) => {
+    const { limit } = req.query;
 
-            }
-            newShares.push(data)
-        }
+    const latestShares = await listShares({ limit });
 
-        return res.status(200).json({success:true, message: `latest ${limit} shares`, data: newShares, code: 200})
-    } catch(e) {
-        console.error(e)
-        return res.status(500).json({success: false, message: "internal server error", code: 500})
-    }
-})
+    return res.status(200).json({ success: true, message: `latest ${latestShares.length} shares`, data: latestShares, code: 200 });
+}));
 
 module.exports = router;
