@@ -355,6 +355,56 @@
     font-size: inherit;
 }
 
+/* Code blocks are wrapped so a copy button can sit outside the horizontally
+   scrolling <pre>. The wrapper takes over the block's outer margin. */
+.md-code-block {
+    position: relative;
+    margin: 1.75rem 0;
+}
+
+.md-code-block > pre {
+    margin: 0;
+}
+
+.md-code-copy {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid color-mix(in oklch, white 14%, transparent);
+    border-radius: 999px;
+    background: color-mix(in oklch, white 8%, transparent);
+    padding: 0.28rem 0.6rem;
+    color: oklch(0.96 0.002 85 / 0.6);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: color 150ms ease, border-color 150ms ease, opacity 150ms ease;
+}
+
+.md-code-copy:hover,
+.md-code-copy:focus-visible {
+    border-color: color-mix(in oklch, white 32%, transparent);
+    color: oklch(0.98 0.002 85);
+}
+
+/* Hover-to-reveal only where hovering exists; touch devices keep it visible. */
+@media (hover: hover) {
+    .md-code-copy {
+        opacity: 0;
+    }
+
+    .md-code-block:hover .md-code-copy,
+    .md-code-copy:focus-visible {
+        opacity: 1;
+    }
+}
+
 /* Syntax highlighting. Muted tokens so a code block still belongs to the
    neutral page instead of turning into a rainbow. */
 .md-content pre code.hljs {
