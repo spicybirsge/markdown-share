@@ -22,7 +22,7 @@ export default function Footer() {
           <div className="max-w-sm">
             <Logo />
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              The agentic markdown sharing platform
+              The agentic markdown sharing platform.
             </p>
           </div>
 

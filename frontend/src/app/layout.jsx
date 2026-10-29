@@ -22,7 +22,7 @@ const description =
 export const metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Markdown Share — The agentic markdown sharing platform",
+    default: "Markdown Share - The agentic markdown sharing platform",
     template: "%s · Markdown Share",
   },
   description,
