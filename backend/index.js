@@ -11,8 +11,11 @@ const errorHandler = require('./middleware/errorHandler');
 require('./database/connector')();
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Vercel caps request bodies at 4MB. express.json defaults to 100kb, so pin the
+// limit explicitly to keep local, self-hosted and serverless behaving the same.
+const JSON_BODY_LIMIT = '4mb';
+app.use(express.json({ limit: JSON_BODY_LIMIT }));
+app.use(express.urlencoded({ extended: false, limit: JSON_BODY_LIMIT }));
 app.use(logger('combined'));
 app.use(cors());
 app.set('json spaces', 1)
