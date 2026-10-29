@@ -12,6 +12,17 @@ export const metadata = {
   title: "Public shares",
   description:
     "Browse markdown documents people have published with Markdown Share — notes, guides, runbooks and everything in between.",
+  openGraph: {
+    title: "Public shares",
+    description:
+      "Browse markdown documents people have published with Markdown Share — notes, guides, runbooks and everything in between.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Public shares",
+    description:
+      "Browse markdown documents people have published with Markdown Share — notes, guides, runbooks and everything in between.",
+  },
 };
 
 async function getShares() {
