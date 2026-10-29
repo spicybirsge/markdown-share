@@ -15,7 +15,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(logger('combined'));
 app.use(cors());
-app.use(errorHandler);
 app.set('json spaces', 1)
 if(process.env.NODE_ENV === 'production') {
     app.set('trust proxy', true); 
@@ -88,6 +87,10 @@ app.all('*', async (req, res) => {
     res.status(404).json({success: false, message: "No matching route found.", code: 404})
 
 })
+
+// Must be registered after every route and the 404 handler to run as error
+// middleware. Placing it earlier makes Express treat it as normal middleware.
+app.use(errorHandler);
 
 
 const PORT = process.env.PORT || 5050;
