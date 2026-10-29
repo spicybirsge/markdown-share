@@ -1,37 +1,78 @@
-import { Inter, Geist } from "next/font/google";
-import Provider from "@/providers/provider"
-import { cn } from "@/lib/utils";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "sonner";
+import "./globals.css";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geistSans = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+  display: "swap",
+});
 
-const inter = Inter({ subsets: ["latin"] });
-;
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
+});
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://markdownshare.shaheerahamed.com";
+const description =
+  "Markdown Share turns plain markdown into clean, permanent pages. Write it yourself, or let your agent publish it over MCP.";
+
 export const metadata = {
-  title: 'Home / Markdown Share',
-  description: 'Alternative to codebins! Why share only code, when you can share markdown files with explanations along with code',
-  keywords: ['markdown share', 'markdown', 'share', 'codebin', 'sourcebin', 'coding', 'blogging'],
-  icons: {
-    icon: '/assets/media/logo.png',
-   
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Markdown Share — The agentic markdown sharing platform",
+    template: "%s · Markdown Share",
   },
+  description,
+  applicationName: "Markdown Share",
+  keywords: [
+    "markdown share",
+    "markdown",
+    "share",
+    "codebin",
+    "pastebin",
+    "mcp",
+    "model context protocol",
+    "ai agents",
+  ],
   openGraph: {
-    title: 'Markdown share',
-    description: 'Alternative to codebins! Why share only code, when you can share markdown files with explanations along with code',
-    site_name: 'Markdown share',
-    images: [
-      {
-        url: '/assets/media/logo.png',
-      },
-    ],
+    type: "website",
+    url: siteUrl,
+    title: "Markdown Share — The agentic markdown sharing platform",
+    description,
+    siteName: "Markdown Share",
+    images: [{ url: "/assets/media/logo.png" }],
   },
-
+  twitter: {
+    card: "summary_large_image",
+    title: "Markdown Share — The agentic markdown sharing platform",
+    description,
+    images: ["/assets/media/logo.png"],
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
-      <body className={inter.className}>
-        <Provider>{children}</Provider>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+    >
+      <body className="min-h-dvh bg-background font-sans text-foreground antialiased">
+        {children}
+        <Toaster
+          position="bottom-right"
+          theme="light"
+          toastOptions={{
+            style: {
+              borderRadius: "0.75rem",
+              border: "1px solid var(--border)",
+              background: "var(--popover)",
+              color: "var(--popover-foreground)",
+            },
+          }}
+        />
       </body>
     </html>
   );
