@@ -53,7 +53,7 @@ export default function McpSection() {
           <p className="mt-5 max-w-md text-[15px] leading-7 text-white/55">
             Connect Markdown Share once. From then on, any long document your
             agent produces can become a clean, permanent page with a single
-            tool call — instead of a wall of chat.
+            tool call - instead of a wall of chat.
           </p>
 
           <ol className="mt-9 space-y-4">
