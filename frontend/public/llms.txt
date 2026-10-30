@@ -22,9 +22,9 @@ All REST responses use the envelope `{ success, message, code, data? }`.
 
 ## API
 
-- [Create share](https://markdownshare.shaheerahamed.com/api/v1/create/share): POST with body `{ content, isUnlisted, title?, description?, idempotencyKey? }`
-- [Read share](https://markdownshare.shaheerahamed.com/api/v1/read/share): GET with `?id=<uuid>`, returns one share with its content
-- [Latest shares](https://markdownshare.shaheerahamed.com/api/v1/read/latest-shares): GET with `?limit=<n>`, public shares newest first (default 28, max 100)
+- [Create share](https://api.markdownshare.shaheerahamed.com/api/v1/create/share): POST with body `{ content, isUnlisted, title?, description?, idempotencyKey? }`
+- [Read share](https://api.markdownshare.shaheerahamed.com/api/v1/read/share): GET with `?id=<uuid>`, returns one share with its content
+- [Latest shares](https://api.markdownshare.shaheerahamed.com/api/v1/read/latest-shares): GET with `?limit=<n>`, public shares newest first (default 28, max 100)
 
 ## Web
 
