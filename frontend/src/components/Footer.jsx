@@ -73,7 +73,7 @@ export default function Footer() {
           <div className="flex items-center gap-2.5">
             <LogoMark className="size-6 rounded-[7px]" />
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Shaheer Ahamed. All rights reserved.
+              © {new Date().getFullYear()} Shaheer Ahamed. MIT License.
             </p>
           </div>
         </div>
