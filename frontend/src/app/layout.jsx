@@ -27,6 +27,27 @@ export const metadata = {
   },
   description,
   applicationName: "Markdown Share",
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+    ],
+    shortcut: ["/favicon.ico"],
+    apple: [
+      {
+        url: "/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Markdown Share",
+    statusBarStyle: "default",
+  },
   keywords: [
     "markdown share",
     "markdown",
@@ -43,14 +64,26 @@ export const metadata = {
     title: "Markdown Share — The agentic markdown sharing platform",
     description,
     siteName: "Markdown Share",
-    images: [{ url: "/assets/media/logo.png" }],
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Markdown Share — The agentic markdown sharing platform",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Markdown Share — The agentic markdown sharing platform",
     description,
-    images: ["/assets/media/logo.png"],
+    images: ["/og.png"],
   },
+};
+
+export const viewport = {
+  themeColor: "#faf9f7",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }) {

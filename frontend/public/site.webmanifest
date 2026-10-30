@@ -1,0 +1,48 @@
+{
+  "id": "/",
+  "name": "Markdown Share",
+  "short_name": "Markdown Share",
+  "description": "The agentic markdown sharing platform. Publish markdown with the editor or the Markdown Share MCP and get a clean, permanent link.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf9f7",
+  "theme_color": "#faf9f7",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New share",
+      "short_name": "New",
+      "description": "Publish a new markdown document",
+      "url": "/new"
+    },
+    {
+      "name": "Public shares",
+      "short_name": "Public",
+      "description": "Browse the latest public shares",
+      "url": "/list"
+    }
+  ]
+}
