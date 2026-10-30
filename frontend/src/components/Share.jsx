@@ -221,7 +221,7 @@ export default function Share({ id }) {
     <>
       <NavBar />
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 pt-8 sm:px-6 sm:pt-12">
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-3">
           <Link
             href="/list"
             className="inline-flex items-center gap-1.5 rounded-full py-1 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -230,7 +230,7 @@ export default function Share({ id }) {
             Public shares
           </Link>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <a
               href={markdownPath}
               target="_blank"
