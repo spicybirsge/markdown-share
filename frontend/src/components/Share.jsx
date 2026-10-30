@@ -227,13 +227,7 @@ export default function Share({ id }) {
                 </>
               )}
             </button>
-            <Link
-              href="/new"
-              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-foreground px-3.5 text-xs font-medium text-background transition-colors hover:bg-foreground/85"
-            >
-              New share
-              <ArrowUpRight className="size-3.5" />
-            </Link>
+            
           </div>
         </div>
 
