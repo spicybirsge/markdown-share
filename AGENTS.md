@@ -28,7 +28,8 @@ frontend/
     ui/                    Generated shadcn/base-ui primitives
   src/functions/           replaceWithProxy, timeStampToDate
   src/variables/           BACKEND_URL / PROXY_URL resolution
-  public/assets/media/     logo used by metadata
+  public/                  og.png, favicons, site.webmanifest, ads.txt, llms.txt
+  public/assets/media/     third-party client logos (Claude, OpenAI, OpenCode, Cursor)
 
 backend/
   index.js                 Express app: middleware, /proxy, /status, 404, error handler, listen

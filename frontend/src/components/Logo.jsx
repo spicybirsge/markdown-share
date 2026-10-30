@@ -10,8 +10,17 @@ export function LogoMark({ className }) {
       )}
       aria-hidden="true"
     >
-      <svg viewBox="0 0 64 64" className="size-[17px]" fill="currentColor">
-        <path d="M16 46V18h6.5L32 32.4 41.5 18H48v28h-6V29.2L32 43.5 22 29.2V46z" />
+      <svg
+        viewBox="0 0 64 64"
+        className="size-[17px]"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M18 46V18L32 35 46 18V46" />
+        <circle cx="32" cy="21" r="3" fill="currentColor" stroke="none" />
       </svg>
     </span>
   );

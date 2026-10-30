@@ -39,7 +39,10 @@ export async function generateMetadata({ params }) {
       siteName: "Markdown Share",
       images: [
         {
-          url: "/assets/media/logo.png",
+          url: "/og.png",
+          width: 1200,
+          height: 630,
+          alt: "Markdown Share — The agentic markdown sharing platform",
         },
       ],
     },
