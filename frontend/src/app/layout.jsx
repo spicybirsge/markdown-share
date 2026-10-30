@@ -61,7 +61,7 @@ export const metadata = {
   openGraph: {
     type: "website",
     url: siteUrl,
-    title: "Markdown Share — The agentic markdown sharing platform",
+    title: "Markdown Share - The agentic markdown sharing platform",
     description,
     siteName: "Markdown Share",
     images: [
@@ -69,13 +69,13 @@ export const metadata = {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "Markdown Share — The agentic markdown sharing platform",
+        alt: "Markdown Share - The agentic markdown sharing platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Markdown Share — The agentic markdown sharing platform",
+    title: "Markdown Share - The agentic markdown sharing platform",
     description,
     images: ["/og.png"],
   },
