@@ -32,6 +32,13 @@ export async function generateMetadata({ params }) {
     title: response.data.title,
     description: response.data.description || "No description",
     keywords: ["markdown share", "markdown", "share", "markdown post", "post"],
+    // Lets a crawler that only sees the HTML discover the raw document, which is
+    // served by the `/share/<id>.md` rewrite.
+    alternates: {
+      types: {
+        "text/markdown": `/share/${encodeURIComponent(id)}.md`,
+      },
+    },
     openGraph: {
       type: "article",
       title: response.data.title,

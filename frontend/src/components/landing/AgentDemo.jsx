@@ -100,9 +100,10 @@ export default function AgentDemo() {
         <div className="min-w-0 overflow-hidden rounded-[16px] border border-white/10 bg-[#171716]">
           <div className="flex h-11 items-center gap-3 border-b border-white/10 px-4">
             <div className="flex shrink-0 gap-1.5" aria-hidden="true">
-              <span className="size-2.5 rounded-full bg-white/15" />
-              <span className="size-2.5 rounded-full bg-white/15" />
-              <span className="size-2.5 rounded-full bg-white/15" />
+              {/* macOS traffic lights: close, minimize, zoom. */}
+              <span className="size-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="size-2.5 rounded-full bg-[#febc2e]" />
+              <span className="size-2.5 rounded-full bg-[#28c840]" />
             </div>
             <p className="min-w-0 truncate font-mono text-[10.5px] tracking-wide text-white/35">
               claude

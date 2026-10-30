@@ -7,11 +7,14 @@ import {
   ArrowUpRight,
   Calendar,
   Check,
+  ChevronDown,
   Clock,
   Copy,
   Eye,
+  FileCode,
   FileText,
 } from "lucide-react";
+import { Menu } from "@base-ui/react/menu";
 import { toast } from "sonner";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
@@ -174,15 +177,33 @@ export default function Share({ id }) {
     };
   }, [id, attempt]);
 
-  async function copyLink() {
+  async function copyText(text, message) {
     try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      toast.success("Link copied");
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(text);
+      toast.success(message);
+      return true;
     } catch {
       toast.error("Could not copy the link");
+      return false;
     }
+  }
+
+  // The raw document sits next to the reader: `/share/<id>.md`, served by the
+  // rewrite in next.config.mjs.
+  const markdownPath = `/share/${encodeURIComponent(id)}.md`;
+
+  async function copyUiLink() {
+    const ok = await copyText(window.location.href, "Link copied");
+    if (!ok) return;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function copyMarkdownLink() {
+    await copyText(
+      window.location.origin + markdownPath,
+      "Markdown link copied"
+    );
   }
 
   if (status === "loading") return <LoadingState />;
@@ -200,7 +221,7 @@ export default function Share({ id }) {
     <>
       <NavBar />
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 pt-8 sm:px-6 sm:pt-12">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <Link
             href="/list"
             className="inline-flex items-center gap-1.5 rounded-full py-1 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -209,25 +230,68 @@ export default function Share({ id }) {
             Public shares
           </Link>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={copyLink}
+          <div className="ml-auto flex items-center gap-2">
+            <a
+              href={markdownPath}
+              target="_blank"
+              rel="noreferrer"
               className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
             >
-              {copied ? (
-                <>
-                  <Check className="size-3.5" />
-                  Copied
-                </>
-              ) : (
-                <>
-                  <Copy className="size-3.5" />
-                  Copy link
-                </>
-              )}
-            </button>
-            
+              <FileCode className="size-3.5" />
+              Open as markdown
+              <ArrowUpRight className="size-3.5" />
+            </a>
+
+            <div className="flex h-9 items-center rounded-full border border-border bg-card">
+              <button
+                type="button"
+                onClick={copyUiLink}
+                className="inline-flex h-full items-center gap-1.5 rounded-l-full pl-3.5 pr-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {copied ? (
+                  <>
+                    <Check className="size-3.5" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="size-3.5" />
+                    Copy link
+                  </>
+                )}
+              </button>
+
+              <span className="h-4 w-px bg-border" aria-hidden="true" />
+
+              <Menu.Root modal={false}>
+                <Menu.Trigger
+                  aria-label="More copy options"
+                  className="inline-flex h-full items-center justify-center rounded-r-full pl-2 pr-2.5 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <ChevronDown className="size-3.5" />
+                </Menu.Trigger>
+                <Menu.Portal>
+                  <Menu.Positioner sideOffset={6} align="end" className="z-50">
+                    <Menu.Popup className="min-w-44 rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg outline-none">
+                      <Menu.Item
+                        onClick={copyUiLink}
+                        className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[12.5px] font-medium text-muted-foreground outline-none select-none data-[highlighted]:bg-muted data-[highlighted]:text-foreground"
+                      >
+                        <Copy className="size-3.5" />
+                        Copy UI link
+                      </Menu.Item>
+                      <Menu.Item
+                        onClick={copyMarkdownLink}
+                        className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[12.5px] font-medium text-muted-foreground outline-none select-none data-[highlighted]:bg-muted data-[highlighted]:text-foreground"
+                      >
+                        <FileCode className="size-3.5" />
+                        Copy markdown link
+                      </Menu.Item>
+                    </Menu.Popup>
+                  </Menu.Positioner>
+                </Menu.Portal>
+              </Menu.Root>
+            </div>
           </div>
         </div>
 
