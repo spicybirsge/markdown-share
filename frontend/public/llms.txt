@@ -14,6 +14,10 @@ To connect in a client that supports Streamable HTTP, add a server named `markdo
 
 Suggested agent prompt: when asked to share, publish, or hand off a markdown document, call `create_share` with the full document and a short title, then return the link. Use `get_share` when given a Markdown Share link.
 
+## Raw markdown
+
+Append `.md` to any share link to get the document itself: `https://markdownshare.shaheerahamed.com/share/<id>.md` returns `text/markdown` with no envelope and no rendering. Reading it never increments the view count, so it is the cheapest way for an agent to fetch a share it was given as a URL.
+
 All REST responses use the envelope `{ success, message, code, data? }`.
 
 ## API

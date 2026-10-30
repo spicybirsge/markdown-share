@@ -23,6 +23,7 @@ frontend/
     list/page.jsx          "/list" — SSR list of latest public shares
     new/page.jsx           "/new" — standalone create page
     share/[id]/page.jsx    "/share/[id]" — SSR metadata + client reader
+    api/share/[id]/route.js  GET /api/share/[id] — raw markdown behind the .md rewrite
   src/components/          NavBar, Footer, Logo, ShareComposer, Share, ShareContent, TimeAgo
     landing/               AgentDemo, McpSection (client-side demo + copy prompt)
     ui/                    Generated shadcn/base-ui primitives
@@ -88,6 +89,11 @@ All responses share the shape `{ success, message, code, data? }`, including fai
 - `GET /proxy?url=<https url>` — streams images only; blocks non-HTTPS, private/loopback IPs, and redirects.
 - `GET /status` — health check.
 
+### Raw markdown
+
+- `GET /share/<id>.md` — the document itself as `text/markdown; charset=utf-8`, with no envelope and no rendering. A frontend rewrite (`/share/:id.md` → `/api/share/:id` in `next.config.mjs`) hands it to `src/app/api/share/[id]/route.js`; the backend is unchanged. Reads with `metafetch=true`, so it never counts a view. A missing share is `text/plain` `404`; a backend failure is `503` rather than a misleading `404`. Cached `public, max-age=60, s-maxage=3600` because shares are immutable.
+- The reader links to it twice: an "Open as markdown" button, and "Copy markdown link" in the Copy link dropdown. `generateMetadata` also emits `<link rel="alternate" type="text/markdown">`.
+
 ### MCP
 
 - `POST /mcp` — MCP Streamable HTTP, stateless (`sessionIdGenerator: undefined`, JSON responses). One JSON-RPC message per POST; `GET` and `DELETE` return `405` because there is no session to resume or terminate. Mounted on the same Express app, so `vercel.json` needs no change.
@@ -106,6 +112,7 @@ Validation, defaults and the shape of a share live in `services/shares.js`. Chan
 - `source` records where a share came from (`web` for the editor, `mcp` for agent clients); `idempotencyKey` is unique and sparse.
 - Server components fetch from `BACKEND_URL`; the reader (`Share.jsx`) fetches client-side, while `generateMetadata` fetches the same share with `metafetch=true` to avoid inflating views.
 - Markdown images are rewritten to go through `PROXY_URL/proxy?url=` by `replaceWithProxy`, both on save and on render.
+- `/share/<id>.md` is a Next rewrite, not a page: the reader is a page and can only return HTML, so the raw document comes from a route handler that re-serves the backend's `content` field.
 - Rendered markdown is sanitized with `rehype-sanitize`.
 
 ## Conventions
