@@ -59,11 +59,14 @@ function ShareCard({ share }) {
         <ArrowUpRight className="size-4 text-muted-foreground transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
       </div>
 
-      <h2 className="mt-4 line-clamp-2 break-words text-[17px] font-medium leading-6 tracking-[-0.015em]">
+      <h2
+        className="mt-4 truncate text-[17px] font-medium leading-6 tracking-[-0.015em]"
+        title={share.title || "Untitled share"}
+      >
         {share.title || "Untitled share"}
       </h2>
 
-      <p className="mt-2 line-clamp-2 break-words text-[13.5px] leading-6 text-muted-foreground">
+      <p className="mt-2 line-clamp-4 min-h-0 flex-1 break-words text-[13.5px] leading-6 text-muted-foreground">
         {share.description || share.excerpt || "No description."}
       </p>
 
