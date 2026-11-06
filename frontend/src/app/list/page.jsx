@@ -6,7 +6,7 @@ import TimeAgo from "@/components/TimeAgo";
 import SourceBadge from "@/components/SourceBadge";
 import variables from "@/variables/variables";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata = {
   title: "Public shares",
@@ -31,7 +31,7 @@ async function getShares() {
   try {
     const request = await fetch(
       variables.BACKEND_URL + "/api/v1/read/latest-shares?limit=27",
-      { cache: "no-store" }
+      { next: { revalidate: 60 } }
     );
     const response = await request.json();
 
