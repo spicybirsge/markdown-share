@@ -1,9 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const { createShare } = require('../../services/shares');
-const asyncHandler = require('../../middleware/asyncHandler');
+import { Router } from 'express';
+import { createShare } from '../../services/shares';
+import asyncHandler from '../../middleware/asyncHandler';
+import type { CreateShareInput, Share } from '../../types/share';
 
-router.post('/share', asyncHandler(async (req, res) => {
+const router = Router();
+
+router.post('/share', asyncHandler<Share, CreateShareInput>(async (req, res) => {
     const body = req.body || {};
 
     const { share } = await createShare({
@@ -18,4 +20,4 @@ router.post('/share', asyncHandler(async (req, res) => {
     return res.status(200).json({ success: true, message: "share created", data: share, code: 200 });
 }));
 
-module.exports = router;
+export default router;

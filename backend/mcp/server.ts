@@ -1,13 +1,12 @@
-const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
-const { z } = require('zod');
-const config = require('../config');
-const { getShare, createShare } = require('../services/shares');
-const AppError = require('../functions/AppError');
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
+import config from '../config';
+import { getShare, createShare } from '../services/shares';
+import AppError from '../functions/AppError';
+import type { Share } from '../types/share';
 
-// Phase 1 of the MCP plan is read-only: the only tool here can read a share.
-// Nothing on this server can create data, which is what makes it safe to expose
-// before the rate limits, size caps and provenance rules for writes exist.
-const SERVER_INFO = {
+export const SERVER_INFO = {
     name: 'markdown-share',
     version: '1.0.0'
 };
@@ -20,14 +19,14 @@ const INSTRUCTIONS = [
     'This server cannot edit or delete shares.'
 ].join(' ');
 
-function shareUrl(id) {
+function shareUrl(id: string): string {
     return `${config.publicBaseUrl}/share/${id}`;
 }
 
 // The API stores createdAt as a timestamp, but mongoose casts it through a
 // String field, so it reaches us as a numeric string. Normalise once here
 // instead of making every caller guess.
-function toIsoDate(value) {
+function toIsoDate(value: string | number): string | null {
     const date = new Date(Number(value));
     if (Number.isNaN(date.getTime())) {
         return null;
@@ -35,7 +34,7 @@ function toIsoDate(value) {
     return date.toISOString();
 }
 
-function formatShare(share) {
+function formatShare(share: Share): string {
     const url = shareUrl(share._id);
     const created = toIsoDate(share.createdAt);
     const meta = [
@@ -54,7 +53,7 @@ function formatShare(share) {
 // AppError messages are written to be safe for the caller, which for an MCP
 // tool means safe to relay back to the model. Anything else is a bug: the detail
 // stays in the server log and the agent gets a generic message.
-function toToolError(error, action) {
+function toToolError(error: unknown, action: string): CallToolResult {
     if (error instanceof AppError) {
         return { isError: true, content: [{ type: 'text', text: error.message }] };
     }
@@ -65,7 +64,7 @@ function toToolError(error, action) {
     };
 }
 
-function buildServer() {
+export function buildServer(): McpServer {
     const server = new McpServer(SERVER_INFO, { instructions: INSTRUCTIONS });
 
     server.registerTool('get_share', {
@@ -195,5 +194,3 @@ function buildServer() {
 
     return server;
 }
-
-module.exports = { buildServer, SERVER_INFO };
