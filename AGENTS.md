@@ -4,26 +4,26 @@
 
 **Markdown Share** is a small "codebin for markdown" web app. Users paste markdown, get a shareable link, and others can read the rendered result. Shares can be public (listed at `/list` and linked from the landing page) or unlisted (link-only).
 
-Two independent JavaScript apps in one repo:
+Two independent apps in one repo:
 
 | Folder | Stack | Role |
 | --- | --- | --- |
-| `frontend/` | Next.js 16 (App Router, JS/JSX), React 19, Tailwind 4 + shadcn/ui | SSR pages + client UI |
+| `frontend/` | Next.js 16 (App Router, TypeScript/TSX), React 19, Tailwind 4 + shadcn/ui | SSR pages + client UI |
 | `backend/` | Express 4 (CommonJS), Mongoose 8, MongoDB | REST API + image proxy |
 
-There is no shared package, monorepo tooling, TypeScript, or test suite.
+There is no shared package, monorepo tooling or test suite.
 
 ## Layout
 
 ```
 frontend/
   src/app/                 Next.js App Router
-    layout.jsx             Root layout, Geist fonts, metadata, sonner Toaster
-    page.jsx               "/" — landing: hero + agent demo + MCP prompt + composer
-    list/page.jsx          "/list" — SSR list of latest public shares
-    new/page.jsx           "/new" — standalone create page
-    share/[id]/page.jsx    "/share/[id]" — SSR metadata + client reader
-    api/share/[id]/route.js  GET /api/share/[id] — raw markdown behind the .md rewrite
+    layout.tsx             Root layout, Geist fonts, metadata, sonner Toaster
+    page.tsx               "/" — landing: hero + agent demo + MCP prompt + composer
+    list/page.tsx          "/list" — SSR list of latest public shares
+    new/page.tsx           "/new" — standalone create page
+    share/[id]/page.tsx    "/share/[id]" — SSR metadata + client reader
+    api/share/[id]/route.ts  GET /api/share/[id] — raw markdown behind the .md rewrite
   src/components/          NavBar, Footer, Logo, ShareComposer, Share, ShareContent, TimeAgo
     landing/               AgentDemo, McpSection (client-side demo + copy prompt)
     ui/                    Generated shadcn/base-ui primitives
@@ -75,7 +75,7 @@ Backend:
 - `JSON_BODY_LIMIT` — request body cap, defaults to `4mb` to match the Vercel limit.
 - `PUBLIC_BASE_URL` — frontend origin used when building share links, defaults to the production site.
 
-Frontend (read at module load in `src/variables/variables.js`):
+Frontend (read at module load in `src/variables/variables.ts`):
 - `NEXT_PUBLIC_BACKEND_URL` — API origin. The `NEXT_PUBLIC_` prefix is required for the browser bundle to see it; the unprefixed `BACKEND_URL` is still read as a fallback, but only server rendering sees that one.
 - `NEXT_PUBLIC_PROXY_URL` — image proxy origin, same rule.
 
@@ -91,7 +91,7 @@ All responses share the shape `{ success, message, code, data? }`, including fai
 
 ### Raw markdown
 
-- `GET /share/<id>.md` — the document itself as `text/markdown; charset=utf-8`, with no envelope and no rendering. A frontend rewrite (`/share/:id.md` → `/api/share/:id` in `next.config.mjs`) hands it to `src/app/api/share/[id]/route.js`; the backend is unchanged. Reads with `metafetch=true`, so it never counts a view. A missing share is `text/plain` `404`; a backend failure is `503` rather than a misleading `404`. Cached `public, max-age=60, s-maxage=3600` because shares are immutable.
+- `GET /share/<id>.md` — the document itself as `text/markdown; charset=utf-8`, with no envelope and no rendering. A frontend rewrite (`/share/:id.md` → `/api/share/:id` in `next.config.ts`) hands it to `src/app/api/share/[id]/route.ts`; the backend is unchanged. Reads with `metafetch=true`, so it never counts a view. A missing share is `text/plain` `404`; a backend failure is `503` rather than a misleading `404`. Cached `public, max-age=60, s-maxage=3600` because shares are immutable.
 - The reader links to it twice: an "Open as markdown" button, and "Copy markdown link" in the Copy link dropdown. `generateMetadata` also emits `<link rel="alternate" type="text/markdown">`.
 
 ### MCP
@@ -107,18 +107,18 @@ Validation, defaults and the shape of a share live in `services/shares.js`. Chan
 ## Data flow notes
 
 - Share `_id` is a client-generated UUID string, not a Mongo ObjectId.
-- `createdAt` is stored as a timestamp (number) but read as a string and multiplied by `*1` in the frontend.
+- `createdAt` is stored as a timestamp (number) but can be read as a string; the frontend normalizes it with `Number()`.
 - `views` is an array of IPs; the API returns only `views.length`, so `views` is always a number on the wire.
 - `source` records where a share came from (`web` for the editor, `mcp` for agent clients); `idempotencyKey` is unique and sparse.
-- Server components fetch from `BACKEND_URL`; the reader (`Share.jsx`) fetches client-side, while `generateMetadata` fetches the same share with `metafetch=true` to avoid inflating views.
+- Server components fetch from `BACKEND_URL`; the reader (`Share.tsx`) fetches client-side, while `generateMetadata` fetches the same share with `metafetch=true` to avoid inflating views.
 - Markdown images are rewritten to go through `PROXY_URL/proxy?url=` by `replaceWithProxy`, both on save and on render.
 - `/share/<id>.md` is a Next rewrite, not a page: the reader is a page and can only return HTML, so the raw document comes from a route handler that re-serves the backend's `content` field.
 - Rendered markdown is sanitized with `rehype-sanitize`.
 
 ## Conventions
 
-- Plain JavaScript, JSX for components, CommonJS (`require`/`module.exports`) on the backend, ESM imports on the frontend.
-- `@/*` maps to `frontend/src/*` (see `frontend/jsconfig.json`).
+- TypeScript and TSX on the frontend; plain JavaScript with CommonJS (`require`/`module.exports`) on the backend. The frontend uses ESM imports.
+- `@/*` maps to `frontend/src/*` (see `frontend/tsconfig.json`).
 - `'use client'` only where hooks/browser APIs are needed; pages stay server components.
 - Styling is Tailwind utility classes plus shadcn/base-ui primitives. Shared design tokens (warm neutral palette, radius, motion) live in `globals.css`; long-form rendered markdown uses the `.md-content` styles there.
 - The public list, reader and landing all share `ShareContent` for markdown rendering. Fenced code blocks are highlighted with `rehype-highlight`.
@@ -126,7 +126,7 @@ Validation, defaults and the shape of a share live in `services/shares.js`. Chan
 
 ## Known rough edges (useful when modernizing)
 
-- No tests, lint config, or CI.
+- No test suite or CI. The frontend has strict TypeScript and ESLint checks (`npm run typecheck`, `npm run lint`, and `npm run build`).
 - `vercel.json` uses the legacy `builds`/`routes` format.
 - `isPrivate` IP check is incomplete (e.g. only `172.16.`, no IPv6 or `172.17–31`).
 - The landing hero animation loops while it is in view and falls back to a static final frame for `prefers-reduced-motion`.
