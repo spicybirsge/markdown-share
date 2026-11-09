@@ -1,6 +1,13 @@
+import dotenv from 'dotenv';
+
+// Load before config is evaluated, including when services are imported directly.
+if (process.env.NODE_ENV !== 'production') {
+    dotenv.config();
+}
+
 const isProduction = process.env.NODE_ENV === 'production';
 
-function stripTrailingSlashes(value) {
+function stripTrailingSlashes(value: string): string {
     return value.replace(/\/+$/, '');
 }
 
@@ -16,4 +23,4 @@ const config = {
     publicBaseUrl: stripTrailingSlashes(process.env.PUBLIC_BASE_URL || 'https://markdownshare.shaheerahamed.com')
 };
 
-module.exports = config;
+export default config;

@@ -1,12 +1,27 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
+import type { ShareSource } from '../../types/share';
 
-const shares = new mongoose.Schema({
+// Keep the existing storage types: createdAt is a string and _id is a UUID.
+export interface ShareRecord {
+    _id: string;
+    title: string;
+    description: string | null;
+    content: string;
+    createdAt: string;
+    views: string[];
+    unlisted: boolean;
+    source?: ShareSource;
+    clientName?: string;
+    idempotencyKey?: string;
+}
+
+const shares = new mongoose.Schema<ShareRecord>({
     _id: String,
     title: String,
     description: String,
     content: String,
     createdAt: String,
-    views: Array,
+    views: [String],
     unlisted: Boolean,
     // where the share was created: "web" for the editor, "mcp" for agent clients
     source: { type: String, default: "web" },
@@ -20,4 +35,4 @@ const shares = new mongoose.Schema({
 // share created from the web editor) do not collide on a missing value.
 shares.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
 
-module.exports = mongoose.model("Shares", shares)
+export default mongoose.model<ShareRecord>('Shares', shares);

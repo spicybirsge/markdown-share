@@ -1,15 +1,17 @@
-const express = require('express');
-const router = express.Router();
-const { getShare, listShares } = require('../../services/shares');
-const asyncHandler = require('../../middleware/asyncHandler');
+import { Router } from 'express';
+import { getShare, listShares } from '../../services/shares';
+import asyncHandler from '../../middleware/asyncHandler';
+import type { Share, ShareListItem } from '../../types/share';
+
+const router = Router();
 
 // `metafetch` lets the frontend read a share for page metadata without
 // inflating the view count.
-function isTruthy(value) {
+function isTruthy(value: unknown): boolean {
     return value === true || value === 'true' || value === '1';
 }
 
-router.get('/share', asyncHandler(async (req, res) => {
+router.get('/share', asyncHandler<Share>(async (req, res) => {
     const { id, metafetch } = req.query;
 
     const share = await getShare(id, {
@@ -20,7 +22,7 @@ router.get('/share', asyncHandler(async (req, res) => {
     return res.status(200).json({ success: true, message: "share found", data: share, code: 200 });
 }));
 
-router.get('/latest-shares', asyncHandler(async (req, res) => {
+router.get('/latest-shares', asyncHandler<ShareListItem[]>(async (req, res) => {
     const { limit } = req.query;
 
     const latestShares = await listShares({ limit });
@@ -28,4 +30,4 @@ router.get('/latest-shares', asyncHandler(async (req, res) => {
     return res.status(200).json({ success: true, message: `latest ${latestShares.length} shares`, data: latestShares, code: 200 });
 }));
 
-module.exports = router;
+export default router;

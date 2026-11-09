@@ -1,12 +1,19 @@
-const uuid = require('uuid');
-const shares = require('../database/schemas/shares');
-const generateRandomName = require('../functions/generateRandomName');
-const { connectDB } = require('../database/connector');
-const AppError = require('../functions/AppError');
+import { v4 as uuid } from 'uuid';
+import shares, { type ShareRecord } from '../database/schemas/shares';
+import generateRandomName from '../functions/generateRandomName';
+import { connectDB } from '../database/connector';
+import AppError from '../functions/AppError';
+import type {
+    CreateShareInput, CreateShareResult, GetShareOptions, ListSharesOptions,
+    Share, ShareListItem, ShareSource
+} from '../types/share';
+
+type ShareData = Omit<ShareRecord, 'createdAt'> & { createdAt: string | number };
+type ListData = Omit<ShareData, 'content'> & { excerpt: string | null };
 
 // Domain rules, kept next to the logic that enforces them so the REST routes
 // and any future caller (the MCP server) cannot drift apart.
-const LIMITS = {
+export const LIMITS = {
     title: 70,
     description: 180,
     listDefault: 28,
@@ -24,12 +31,12 @@ const LIMITS = {
     content: 4 * 1024 * 1024
 };
 
-const SOURCES = {
+export const SOURCES = {
     web: 'web',
     mcp: 'mcp'
-};
+} as const;
 
-function normalizeText(value) {
+function normalizeText(value: unknown): unknown {
     if (typeof value !== 'string') {
         return value;
     }
@@ -38,19 +45,19 @@ function normalizeText(value) {
 }
 
 // An empty or non string key means "not idempotent", not "reject the request".
-function normalizeIdempotencyKey(value) {
+function normalizeIdempotencyKey(value: unknown): string | undefined {
     const key = normalizeText(value);
-    if (!key) {
+    if (typeof key !== 'string') {
         return undefined;
     }
     return key.slice(0, LIMITS.idempotencyKey);
 }
 
-function resolveSource(value) {
+function resolveSource(value: unknown): ShareSource {
     return value === SOURCES.mcp ? SOURCES.mcp : SOURCES.web;
 }
 
-function formatBytes(bytes) {
+function formatBytes(bytes: number): string {
     if (bytes < 1024) {
         return `${bytes} B`;
     }
@@ -65,7 +72,7 @@ function formatBytes(bytes) {
 // whole create over four extra characters is a bad trade, so the service trims
 // to the limit instead of failing. The web UI already caps input at the same
 // numbers, so this only ever affects callers that do not.
-function truncate(value, max) {
+function truncate(value: string, max: number): string {
     if (value.length <= max) {
         return value;
     }
@@ -74,7 +81,7 @@ function truncate(value, max) {
 
 // A share published without a title still deserves a real one. Prefer the first
 // markdown heading over a generated name.
-function titleFromContent(content) {
+function titleFromContent(content: string): string | undefined {
     if (typeof content !== 'string') {
         return undefined;
     }
@@ -82,13 +89,13 @@ function titleFromContent(content) {
     if (!match) {
         return undefined;
     }
-    const heading = match[1].replace(/[*_`~]/g, '').trim();
+    const heading = (match[1] || '').replace(/[*_`~]/g, '').trim();
     return heading.length > 0 ? heading : undefined;
 }
 
 // Single place that decides what a share looks like on the wire, so create and
 // read cannot disagree about field names or the shape of `views`.
-function toShare(share) {
+function toShare(share: ShareData): Share {
     return {
         _id: share._id,
         title: share.title,
@@ -104,7 +111,7 @@ function toShare(share) {
 // List views get a plain text preview instead of the document itself. A share
 // can be megabytes of markdown, and the home page only ever renders title,
 // description and a timestamp.
-function toExcerpt(raw) {
+function toExcerpt(raw: string | null): string | null {
     if (!raw) {
         return null;
     }
@@ -124,7 +131,7 @@ function toExcerpt(raw) {
     return plain.slice(0, LIMITS.excerpt).trimEnd() + '…';
 }
 
-function toListItem(share) {
+function toListItem(share: ListData): ShareListItem {
     return {
         _id: share._id,
         title: share.title,
@@ -137,7 +144,7 @@ function toListItem(share) {
     }
 }
 
-function resolveLimit(raw) {
+function resolveLimit(raw: unknown): number {
     if (raw === undefined || raw === null || raw === '') {
         return LIMITS.listDefault;
     }
@@ -148,11 +155,11 @@ function resolveLimit(raw) {
     return Math.max(0, Math.min(Math.floor(value), LIMITS.listMax));
 }
 
-async function createShare(input = {}) {
+export async function createShare(input: CreateShareInput = {}): Promise<CreateShareResult> {
     await connectDB();
 
     let title = normalizeText(input.title);
-    let description = normalizeText(input.description);
+    const description = normalizeText(input.description);
     const content = input.content;
     const { isUnlisted } = input;
     const source = resolveSource(input.source);
@@ -192,20 +199,18 @@ async function createShare(input = {}) {
         title = titleFromContent(content) || generateRandomName();
     }
 
-    title = truncate(title, LIMITS.title);
-
-    if (!description) {
-        description = null;
+    if (typeof title !== 'string') {
+        throw AppError.badRequest('title should be a string');
     }
 
-    if (description) {
-        description = truncate(description, LIMITS.description);
+    if (description && typeof description !== 'string') {
+        throw AppError.badRequest('description should be a string');
     }
 
-    const share = {
-        _id: uuid.v4(),
-        title: title,
-        description: description,
+    const share: ShareData = {
+        _id: uuid(),
+        title: truncate(title, LIMITS.title),
+        description: typeof description === 'string' ? truncate(description, LIMITS.description) : null,
         content: content,
         createdAt: Date.now(),
         views: [],
@@ -213,7 +218,7 @@ async function createShare(input = {}) {
         source: source
     }
 
-    if (clientName) {
+    if (typeof clientName === 'string') {
         share.clientName = clientName;
     }
 
@@ -225,7 +230,7 @@ async function createShare(input = {}) {
         await shares.create(share);
     } catch (error) {
         // Two concurrent calls with the same key: the loser returns the winner.
-        if (idempotencyKey && error && error.code === 11000) {
+        if (idempotencyKey && typeof error === 'object' && error !== null && 'code' in error && error.code === 11000) {
             const existing = await shares.findOne({ idempotencyKey });
             if (existing) {
                 return { share: toShare(existing), replayed: true };
@@ -237,7 +242,7 @@ async function createShare(input = {}) {
     return { share: toShare(share), replayed: false };
 }
 
-async function getShare(id, options = {}) {
+export async function getShare(id: unknown, options: GetShareOptions = {}): Promise<Share> {
     await connectDB();
 
     if (!id || typeof id !== 'string') {
@@ -260,7 +265,7 @@ async function getShare(id, options = {}) {
     return toShare(share);
 }
 
-async function listShares(options = {}) {
+export async function listShares(options: ListSharesOptions = {}): Promise<ShareListItem[]> {
     await connectDB();
 
     const limit = resolveLimit(options.limit);
@@ -272,7 +277,7 @@ async function listShares(options = {}) {
 
     // Aggregation projects only the head of each document, so a list request
     // never drags megabytes of markdown out of the database.
-    const latestShares = await shares.aggregate([
+    const latestShares = await shares.aggregate<ListData>([
         { $match: { unlisted: false } },
         { $sort: { createdAt: -1 } },
         { $limit: limit },
@@ -291,11 +296,3 @@ async function listShares(options = {}) {
 
     return latestShares.map(toListItem);
 }
-
-module.exports = {
-    createShare,
-    getShare,
-    listShares,
-    LIMITS,
-    SOURCES
-};

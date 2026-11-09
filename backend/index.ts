@@ -1,15 +1,16 @@
-if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config()
-}
+import config from './config';
+import express from 'express';
+import logger from 'morgan';
+import cors from 'cors';
+import axios from 'axios';
+import type { Readable } from 'node:stream';
 
-const express = require('express');
-const logger = require('morgan');
-const cors = require('cors');
-const axios = require("axios");
-
-const errorHandler = require('./middleware/errorHandler');
-const config = require('./config');
-const { connectDB } = require('./database/connector');
+import errorHandler from './middleware/errorHandler';
+import { connectDB } from './database/connector';
+import createRouter from './routes/v1/create';
+import readRouter from './routes/v1/read';
+import mcpRouter from './routes/mcp';
+import type { ApiHandler } from './types/api';
 
 const app = express();
 app.use(express.json({ limit: config.jsonBodyLimit }));
@@ -22,15 +23,16 @@ if(config.isProduction) {
 }
 
 
-app.use('/api/v1/create', require('./routes/v1/create'));
-app.use('/api/v1/read', require('./routes/v1/read'));
-app.use('/mcp', require('./routes/mcp'));
+app.use('/api/v1/create', createRouter);
+app.use('/api/v1/read', readRouter);
+app.use('/mcp', mcpRouter);
 
-app.get("/proxy", async(req, res) => {
+const proxy: ApiHandler = async(req, res) => {
      try {
     const { url } = req.query;
 
     if (!url) return res.status(400).json({success:false, message: 'url is required', code:400});
+    if (typeof url !== 'string') return res.status(400).json({success:false, message: 'Invalid URL', code:400});
 
     let parsed;
     try {
@@ -47,7 +49,7 @@ app.get("/proxy", async(req, res) => {
     const dns = await import("dns/promises");
     const ips = await dns.lookup(parsed.hostname, { all: true });
 
-    const isPrivate = (ip) =>
+    const isPrivate = (ip: string): boolean =>
       ip.startsWith("127.") ||
       ip.startsWith("10.") ||
       ip.startsWith("192.168.") ||
@@ -55,10 +57,10 @@ app.get("/proxy", async(req, res) => {
       ip.startsWith("169.254.");
 
     if (ips.some(i => isPrivate(i.address))) {
-      return res.status(403).send({success:false, message: "Blocked host", code:400});
+      return res.status(403).send({success:false, message: "Blocked host", code:403});
     }
 
-    const response = await axios.get(url, {
+    const response = await axios.get<Readable>(url, {
       responseType: "stream",
       maxRedirects: 0,
       timeout: 5000
@@ -78,17 +80,19 @@ app.get("/proxy", async(req, res) => {
       return res.status(500).json({ success: false, message: "Internal server error", code: 500 })
   }
 
-})
+};
 
-app.get('/status', async (req, res) => {
+app.get('/proxy', proxy);
+
+app.get('/status', ((_req, res) => {
     res.status(200).json({success: true, message: "All systems operational.", code: 200})
-})
+}) satisfies ApiHandler);
 
-app.all('*', async (req, res) => {
+app.all('*', ((_req, res) => {
     
     res.status(404).json({success: false, message: "No matching route found.", code: 404})
 
-})
+}) satisfies ApiHandler);
 
 // Must be registered after every route and the 404 handler to run as error
 // middleware. Placing it earlier makes Express treat it as normal middleware.
@@ -97,7 +101,7 @@ app.use(errorHandler);
 
 const PORT = config.port;
 
-module.exports = app;
+export = app;
 
 // Imported by the serverless platform, where the request handler is the export
 // above and the process never listens on a port.

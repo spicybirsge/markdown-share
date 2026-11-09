@@ -2,18 +2,54 @@
 // MCP plan asks for: the tool list, a read roundtrip, a create roundtrip, the
 // size ceiling and an idempotent replay.
 //
-//   node scripts/mcp-smoke.js [shareId]
+//   npm run smoke:mcp -- [shareId]
 //
 // Without an id it picks the newest public share for the read check. The create
 // checks add real (unlisted) rows, so point MONGODB_URI at a scratch database.
 
-const crypto = require('crypto');
+import crypto from 'node:crypto';
+import { z } from 'zod';
+
+// Validate the parts of the wire responses used below instead of trusting
+// JSON.parse()/fetch().json(), whose return types would otherwise erase checks.
+const shareSchema = z.object({
+    _id: z.string(),
+    views: z.number(),
+    source: z.string().optional()
+});
+
+const payloadSchema = z.object({
+    success: z.boolean().optional(),
+    code: z.number().optional(),
+    error: z.object({ code: z.number() }).passthrough().optional(),
+    result: z.object({
+        protocolVersion: z.string().optional(),
+        serverInfo: z.object({ name: z.string() }).optional(),
+        capabilities: z.object({ tools: z.unknown().optional() }).optional(),
+        tools: z.array(z.object({
+            name: z.string(),
+            description: z.string().optional(),
+            annotations: z.object({ readOnlyHint: z.boolean().optional() }).optional()
+        })).optional(),
+        isError: z.boolean().optional(),
+        content: z.array(z.object({ text: z.string().optional() })).optional(),
+        structuredContent: z.object({
+            id: z.string().optional(),
+            title: z.string().optional(),
+            description: z.string().optional(),
+            contentBytes: z.number().optional(),
+            content: z.unknown().optional(),
+            unlisted: z.boolean().optional(),
+            replayed: z.boolean().optional()
+        }).passthrough().optional()
+    }).optional()
+});
 
 const BASE_URL = (process.env.MCP_BASE_URL || 'http://localhost:5050').replace(/\/+$/, '');
 
 let failures = 0;
 
-function check(label, condition, detail) {
+function check(label: string, condition: unknown, detail?: unknown): void {
     if (condition) {
         console.log(`  ok   ${label}`);
         return;
@@ -22,7 +58,7 @@ function check(label, condition, detail) {
     console.log(`  FAIL ${label}${detail ? ` — ${detail}` : ''}`);
 }
 
-async function post(body) {
+async function post(body: unknown) {
     const response = await fetch(`${BASE_URL}/mcp`, {
         method: 'POST',
         headers: {
@@ -35,7 +71,7 @@ async function post(body) {
     const text = await response.text();
     let payload = null;
     try {
-        payload = JSON.parse(text);
+        payload = payloadSchema.parse(JSON.parse(text));
     } catch {
         payload = null;
     }
@@ -43,7 +79,7 @@ async function post(body) {
     return { status: response.status, payload, text };
 }
 
-async function rpc(body) {
+async function rpc(body: unknown) {
     const { status, payload, text } = await post(body);
     if (!payload) {
         throw new Error(`expected JSON, got ${status}: ${text.slice(0, 200)}`);
@@ -54,13 +90,13 @@ async function rpc(body) {
     return payload;
 }
 
-function callTool(id, name, args) {
+function callTool(id: number, name: string, args: Record<string, unknown>) {
     return rpc({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } });
 }
 
 async function newestPublicShare() {
     const response = await fetch(`${BASE_URL}/api/v1/read/latest-shares?limit=1`);
-    const body = await response.json();
+    const body = z.object({ data: z.array(shareSchema).optional() }).parse(await response.json());
     const [share] = body.data || [];
     return share;
 }
@@ -120,7 +156,7 @@ async function main() {
 
         if (before !== null && before !== undefined) {
             const after = await newestPublicShare();
-            check('reading through MCP does not count a view', after.views === before, `${before} -> ${after.views}`);
+            check('reading through MCP does not count a view', after?.views === before, `${before} -> ${after?.views}`);
         }
     }
 
@@ -147,7 +183,9 @@ async function main() {
         check('reports the same byte size', readBack.result?.structuredContent?.contentBytes === Buffer.byteLength(content, 'utf8'));
         check('does not duplicate the document', readBack.result?.structuredContent?.content === undefined);
 
-        const provenance = await fetch(`${BASE_URL}/api/v1/read/share?metafetch=true&id=${createdShare.id}`).then(r => r.json());
+        const provenance = z.object({ data: shareSchema.optional() }).parse(
+            await fetch(`${BASE_URL}/api/v1/read/share?metafetch=true&id=${createdShare.id}`).then(r => r.json())
+        );
         check('records mcp provenance', provenance.data?.source === 'mcp', provenance.data?.source);
         check('does not appear in the public list', (await newestPublicShare())?._id !== createdShare.id);
     }

@@ -1,4 +1,4 @@
-// REST response types mirror backend/services/shares.js. Creating a share
+// REST response types mirror backend/types/share.ts. Creating a share
 // returns a numeric timestamp; Mongo-backed reads can return it as a string.
 export type ShareSource = "web" | "mcp";
 

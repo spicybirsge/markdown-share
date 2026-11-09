@@ -1,14 +1,15 @@
-const mongoose = require("mongoose");
-const AppError = require('../functions/AppError');
+import mongoose from 'mongoose';
+import '../config';
+import AppError from '../functions/AppError';
 
 const CONNECT_TIMEOUT_MS = 5000;
 
 // The connection is cached so serverless invocations reuse the same socket.
 // A failed attempt clears the cache so the next request can retry instead of
 // inheriting a permanently rejected promise.
-let connectionPromise = null;
+let connectionPromise: Promise<typeof mongoose> | null = null;
 
-function connectDB() {
+export function connectDB(): Promise<typeof mongoose> {
     const uri = process.env.MONGODB_URI;
 
     if (!uri) {
@@ -34,5 +35,3 @@ mongoose.connection.on('connected', () => {
 mongoose.connection.on('error', (error) => {
     console.error("[x] Database error:", error.message)
 })
-
-module.exports = { connectDB };

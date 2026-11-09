@@ -9,7 +9,7 @@ Two independent apps in one repo:
 | Folder | Stack | Role |
 | --- | --- | --- |
 | `frontend/` | Next.js 16 (App Router, TypeScript/TSX), React 19, Tailwind 4 + shadcn/ui | SSR pages + client UI |
-| `backend/` | Express 4 (CommonJS), Mongoose 8, MongoDB | REST API + image proxy |
+| `backend/` | Express 4 (TypeScript → CommonJS), Mongoose 8, MongoDB | REST API + image proxy |
 
 There is no shared package, monorepo tooling or test suite.
 
@@ -33,20 +33,23 @@ frontend/
   public/assets/media/     third-party client logos (Claude, OpenAI, OpenCode, Cursor)
 
 backend/
-  index.js                 Express app: middleware, /proxy, /status, 404, error handler, listen
-  config.js                Environment parsing (port, body limit, publicBaseUrl)
-  routes/v1/create.js      POST /api/v1/create/share
-  routes/v1/read.js        GET  /api/v1/read/share, /api/v1/read/latest-shares
-  routes/mcp.js            POST /mcp — stateless Streamable HTTP transport
-  mcp/server.js            MCP server + tool definitions (get_share)
-  services/shares.js       createShare / getShare / listShares — all share logic and limits
-  database/connector.js    connectDB(): cached mongoose connection promise
-  database/schemas/shares.js  Share model (string UUID _id)
-  functions/AppError.js    Error type that is safe to expose to the caller
-  functions/generateRandomName.js  fallback title generator
-  middleware/asyncHandler.js  Forwards async route rejections to errorHandler
-  middleware/errorHandler.js  Maps AppError and body-parser failures onto the envelope
-  scripts/mcp-smoke.js     Protocol-level check of the MCP endpoint
+  index.ts                 Express app: middleware, /proxy, /status, 404, error handler, listen
+  config.ts                Environment parsing (port, body limit, publicBaseUrl)
+  routes/v1/create.ts      POST /api/v1/create/share
+  routes/v1/read.ts        GET  /api/v1/read/share, /api/v1/read/latest-shares
+  routes/mcp.ts            POST /mcp — stateless Streamable HTTP transport
+  mcp/server.ts            MCP server + tool definitions (get_share)
+  services/shares.ts       createShare / getShare / listShares — all share logic and limits
+  database/connector.ts    connectDB(): cached mongoose connection promise
+  database/schemas/shares.ts  Share model (string UUID _id)
+  functions/AppError.ts    Error type that is safe to expose to the caller
+  functions/generateRandomName.ts  fallback title generator
+  middleware/asyncHandler.ts  Forwards async route rejections to errorHandler
+  middleware/errorHandler.ts  Maps AppError and body-parser failures onto the envelope
+  scripts/mcp-smoke.ts     Protocol-level check of the MCP endpoint
+  types/                  API envelope, service inputs and share response types
+  tsconfig.json           Strict TypeScript build, emits CommonJS into dist/
+  eslint.config.mjs       ESLint and TypeScript rules
   vercel.json              Serverless deploy config
 ```
 
@@ -62,7 +65,7 @@ cd backend && npm install && npm run dev
 cd frontend && npm install && npm run dev
 ```
 
-`npm run dev` uses `node --watch`; `npm start` runs `node index.js` without watching.
+The backend requires Node.js 20.19+ (20.x), 22.13+ (22.x), or 24+ for its runtime and development tooling. `npm run dev` uses `tsx watch index.ts`. Run `npm run build` to compile into `dist/`, then `npm start` runs `node --enable-source-maps dist/index.js`. Both apps provide `npm run typecheck` and `npm run lint`.
 
 `npm run smoke:mcp` exercises the MCP endpoint end to end against a running server (`MCP_BASE_URL`, default `http://localhost:5050`).
 
@@ -100,9 +103,9 @@ All responses share the shape `{ success, message, code, data? }`, including fai
 - `get_share(id)` is read-only and returns the document as text (first line is a pasteable `[title](url)` link) plus `structuredContent`. It reads through `getShare(id, { countView: false })`, so MCP reads never inflate views.
 - `create_share({ content, title?, description?, idempotencyKey? })` publishes through the same `createShare()` the REST route uses, with `source: 'mcp'`. **`isUnlisted` is forced to `true` and is not a parameter** — agent-created shares never appear on `/`. `idempotencyKey` must be a UUID; a replay returns the original share with `replayed: true`.
 - Tool errors come back as `isError: true` with the `AppError` message, which is written to be safe to relay to a model. A body over `JSON_BODY_LIMIT` fails earlier, as a `413` API envelope.
-- `scripts/mcp-smoke.js` asserts the tool list, read and create roundtrips, provenance, the view counter, idempotent replay, truncation, the size ceiling and the `405`.
+- `scripts/mcp-smoke.ts` asserts the tool list, read and create roundtrips, provenance, the view counter, idempotent replay, truncation, the size ceiling and the `405`.
 
-Validation, defaults and the shape of a share live in `services/shares.js`. Change them there, not in the routes.
+Validation, defaults and the shape of a share live in `services/shares.ts`. Change them there, not in the routes.
 
 ## Data flow notes
 
@@ -117,7 +120,7 @@ Validation, defaults and the shape of a share live in `services/shares.js`. Chan
 
 ## Conventions
 
-- TypeScript and TSX on the frontend; plain JavaScript with CommonJS (`require`/`module.exports`) on the backend. The frontend uses ESM imports.
+- TypeScript in both apps (TSX for React). Use typed imports/exports on the backend; `tsc` emits CommonJS into `dist/`. The backend entry point uses `export = app` for the serverless handler. The frontend uses ESM imports.
 - `@/*` maps to `frontend/src/*` (see `frontend/tsconfig.json`).
 - `'use client'` only where hooks/browser APIs are needed; pages stay server components.
 - Styling is Tailwind utility classes plus shadcn/base-ui primitives. Shared design tokens (warm neutral palette, radius, motion) live in `globals.css`; long-form rendered markdown uses the `.md-content` styles there.
@@ -126,7 +129,7 @@ Validation, defaults and the shape of a share live in `services/shares.js`. Chan
 
 ## Known rough edges (useful when modernizing)
 
-- No test suite or CI. The frontend has strict TypeScript and ESLint checks (`npm run typecheck`, `npm run lint`, and `npm run build`).
+- No test suite or CI. Both apps have strict TypeScript and ESLint checks (`npm run typecheck`, `npm run lint`, and `npm run build`).
 - `vercel.json` uses the legacy `builds`/`routes` format.
 - `isPrivate` IP check is incomplete (e.g. only `172.16.`, no IPv6 or `172.17–31`).
 - The landing hero animation loops while it is in view and falls back to a static final frame for `prefers-reduced-motion`.

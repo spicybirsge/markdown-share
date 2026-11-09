@@ -1,25 +1,56 @@
-# Express js route handler
+# Markdown Share backend
 
-A simple yet convenient expressjs route handler made so it will be easy for you to start your next express backend as soon as possible.
+Express 4, TypeScript, Mongoose 8 and MongoDB. REST routes and the stateless MCP
+endpoint share the validation and business rules in `services/shares.ts`.
 
-# Features
+## Setup
 
-1. MongoDB database support included with mongoose and a connector function to connect to your database. A seperate folder for writing schemas also is included.
-2. Easy version handling by adding api version folder for each version.
-3. folders for each type of route (create, read, update, delete) you can add more like auth for example.
-4. Works with [vercel](https://vercel.com)
-5. Built in errorHandler and folder for writing your middleware
-6. Enables trust proxy if running in production environment so express will return the correct ip instead of the server proxy IP.
-7. Beautiful request logging powered by [morgan](https://npmjs.com/package/morgan)
+Use Node.js 20.19+ (20.x), 22.13+ (22.x), or 24+. These ranges cover both the
+runtime and lint dependencies. From this directory:
 
-# Usage
+```bash
+npm install
+cp .env.example .env
+```
 
-1. Clone this repository
-2. create .env file and add a variable called `MONGODB_URI` which should be equal to your mongoDB database URL
-3. run `node index.js` and the server should start.
+Set `MONGODB_URI` in `.env` to your MongoDB connection string. Optional settings
+are `PORT` (default `5050`), `JSON_BODY_LIMIT` (default `4mb`) and
+`PUBLIC_BASE_URL` (the frontend origin used in share links).
 
-note: when running in production make sure to add a environment variable caled `NODE_ENV` which should be equal to `production` for better optimization
+```bash
+npm run dev          # Run TypeScript with automatic restarts
+npm run typecheck    # Strict type checking, without generating files
+npm run lint         # ESLint, with no warnings allowed
+npm run build        # Compile to dist/, including source maps
+npm start            # Run the compiled dist/index.js
+```
 
-# Contribution
+Build before running `npm start`. Production only needs runtime dependencies;
+the build requires dev dependencies. Set `NODE_ENV=production` in production
+to enable `trust proxy` and use platform environment variables instead of `.env`.
 
-Got any improvements? submit a pull request.
+## MCP smoke check
+
+With the server running against a scratch MongoDB database:
+
+```bash
+npm run smoke:mcp
+npm run smoke:mcp -- <share-id>
+```
+
+`MCP_BASE_URL` defaults to `http://localhost:5050`. The script checks protocol
+negotiation, tool schemas, reads, creates, provenance, view counts, idempotent
+replays, truncation, size limits and stateless transport behavior. It creates
+real unlisted shares. An optional share id selects the document for the initial
+read; otherwise it uses the newest public share.
+
+## Build and deployment
+
+All application code and the smoke script are TypeScript. `tsconfig.json` uses
+strict checking and Node16 module resolution, emitting CommonJS for the existing
+Node runtime. The Mongo schema keeps string UUIDs and string timestamps; API
+creates still return numeric timestamps and reads can return strings.
+
+Vercel builds `index.ts` through `@vercel/node`, as configured in `vercel.json`.
+The entry point exports the Express app directly and only starts a listener when
+run as the main module. Do not commit `dist/` or `.env`.

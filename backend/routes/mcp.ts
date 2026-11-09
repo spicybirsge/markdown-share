@@ -1,8 +1,9 @@
-const express = require('express');
-const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
-const { buildServer } = require('../mcp/server');
+import { Router, type RequestHandler } from 'express';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { buildServer } from '../mcp/server';
+import type { ApiHandler } from '../types/api';
 
-const router = express.Router();
+const router = Router();
 
 // Stateless Streamable HTTP: no session id, no in-memory session map, so any
 // instance can answer any request. That is what makes this survive a serverless
@@ -10,7 +11,7 @@ const router = express.Router();
 //
 // A fresh server and transport per request is the documented pattern for
 // stateless mode; they are closed when the response finishes.
-router.post('/', async (req, res, next) => {
+const handleMcp: RequestHandler<Record<string, string>, unknown, unknown> = async (req, res, next) => {
     const server = buildServer();
     const transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: undefined,
@@ -32,10 +33,12 @@ router.post('/', async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-});
+};
+
+router.post('/', handleMcp);
 
 // In stateless mode there is no session to resume (GET) or terminate (DELETE).
-const methodNotAllowed = (req, res) => {
+const methodNotAllowed: ApiHandler = (_req, res) => {
     return res.status(405).json({
         success: false,
         message: 'This MCP endpoint is stateless; send JSON-RPC messages with POST.',
@@ -46,4 +49,4 @@ const methodNotAllowed = (req, res) => {
 router.get('/', methodNotAllowed);
 router.delete('/', methodNotAllowed);
 
-module.exports = router;
+export default router;
