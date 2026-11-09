@@ -12,6 +12,13 @@ const GROUPS = [
       { href: "/#mcp", label: "MCP for agents" },
     ],
   },
+  {
+    title: "Legal",
+    links: [
+      { href: "/terms", label: "Terms of service" },
+      { href: "/privacy", label: "Privacy policy" },
+    ],
+  },
 ];
 
 export default function Footer() {
@@ -26,7 +33,7 @@ export default function Footer() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-10">
+          <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
             {GROUPS.map((group) => (
               <div key={group.title}>
                 <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
