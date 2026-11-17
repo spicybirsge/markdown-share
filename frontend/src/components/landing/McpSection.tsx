@@ -84,59 +84,24 @@ export default function McpSection() {
     <section id="mcp" className="scroll-mt-16 bg-[#0d0d0c] text-[#f4f3f0]">
       <div className="mx-auto grid w-full max-w-6xl gap-12 px-5 py-20 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-16 lg:py-28">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-white/40">
-            MCP · Model Context Protocol
-          </p>
-          <h2 className="mt-5 max-w-md text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.05] tracking-[-0.035em]">
+          <h2 className="max-w-md text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.05] tracking-[-0.035em]">
             Your agent writes.
             <br />
             We give it a link.
           </h2>
-          <p className="mt-5 max-w-md text-[15px] leading-7 text-white/55">
-            Connect Markdown Share once. From then on, any long document your
-            agent produces can become a clean, permanent page with a single
-            tool call instead of a huge wall of text.
+          <p className="mt-5 max-w-md text-base leading-7 text-white/70">
+            Connect your agent with MCP, then ask it to share a document.
+            Every page is unlisted and ready to send.
           </p>
-      
-
-          <ol className="mt-9 space-y-4">
-            {[
-              "Pick your client and run the setup.",
-              "Ask your agent to share a document.",
-              "Paste the link it returns.",
-            ].map((step, index) => (
-              <li key={step} className="flex items-start gap-4">
-                <span className="mt-0.5 font-mono text-[11px] text-white/30">
-                  0{index + 1}
-                </span>
-                <span className="text-sm leading-6 text-white/70">{step}</span>
-              </li>
-            ))}
-          </ol>
-
-          <div className="mt-9 flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-white/12 px-3 py-1 font-mono text-[10.5px] text-white/45">
-              create_share
-            </span>
-            <span className="rounded-full border border-white/12 px-3 py-1 font-mono text-[10.5px] text-white/45">
-              get_share
-            </span>
-            <span className="rounded-full border border-white/12 px-3 py-1 font-mono text-[10.5px] text-white/45">
-              Streamable HTTP
-            </span>
-          </div>
         </div>
 
         <div className="min-w-0">
           <div className="overflow-hidden rounded-2xl border border-white/12 bg-white/[0.035] shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)]">
             <div className="border-b border-white/10 px-4 py-3.5 sm:px-5">
               <div className="flex items-center justify-between gap-3">
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/35">
-                  Set up your client
+                <p className="text-sm font-medium text-white/70">
+                  Connect your agent
                 </p>
-                <span className="shrink-0 font-mono text-[10px] text-white/25">
-                  one-time
-                </span>
               </div>
 
               <div className="mt-3 flex flex-wrap gap-1.5">
@@ -151,10 +116,10 @@ export default function McpSection() {
                       onClick={() => setClient(item.id)}
                       aria-pressed={isActive}
                       className={cn(
-                        "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11.5px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
+                        "inline-flex min-h-11 items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
                         isActive
                           ? "border-white/20 bg-white/[0.12] text-white"
-                          : "border-transparent text-white/45 hover:bg-white/[0.05] hover:text-white/80"
+                          : "border-transparent text-white/65 hover:bg-white/[0.05] hover:text-white/80"
                       )}
                     >
                       {Icon ? (
@@ -177,13 +142,13 @@ export default function McpSection() {
 
             <div className="px-4 py-5 sm:px-5">
               <div className="flex items-start justify-between gap-4">
-                <p className="max-w-md text-[12.5px] leading-6 text-white/45">
+                <p className="max-w-md text-sm leading-6 text-white/65">
                   {active.hint}
                 </p>
                 <button
                   type="button"
                   onClick={() => handleCopy(active.id, active.code)}
-                  className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/15 px-3 text-[11.5px] font-medium text-white/70 transition-colors hover:border-white/30 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-white/15 px-3 text-xs font-medium text-white/70 transition-colors hover:border-white/30 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 >
                   {copied === active.id ? (
                     <>
@@ -214,14 +179,14 @@ export default function McpSection() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-white/[0.025] px-4 py-3.5 sm:px-5">
               <div className="flex min-w-0 items-center gap-2">
                 <Link2 className="size-3.5 shrink-0 text-white/30" />
-                <code className="truncate font-mono text-[11px] text-white/45">
+                <code className="truncate font-mono text-xs text-white/65">
                   {ENDPOINT}
                 </code>
               </div>
               <button
                 type="button"
                 onClick={() => handleCopy("endpoint", ENDPOINT)}
-                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/15 px-3 text-[11.5px] font-medium text-white/70 transition-colors hover:border-white/30 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-white/15 px-3 text-xs font-medium text-white/70 transition-colors hover:border-white/30 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
               >
                 {copied === "endpoint" ? (
                   <>
@@ -238,10 +203,6 @@ export default function McpSection() {
             </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-between gap-4 px-1 font-mono text-[10.5px] text-white/30">
-            <span>No keys. No accounts.</span>
-            <span className="shrink-0">Streamable HTTP</span>
-          </div>
         </div>
       </div>
     </section>

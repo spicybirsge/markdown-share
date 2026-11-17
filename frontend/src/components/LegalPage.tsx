@@ -15,12 +15,9 @@ export default function LegalPage({
   return (
     <>
       <NavBar />
-      <main className="mx-auto w-full max-w-3xl px-5 pb-24 pt-14 sm:px-6 sm:pt-20">
+      <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-3xl px-5 pb-24 pt-14 sm:px-6 sm:pt-20">
         <header className="mb-10 border-b border-border pb-8">
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-            Legal
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+          <h1 className="text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
             {title}
           </h1>
           <p className="mt-4 text-[15px] leading-7 text-muted-foreground">
