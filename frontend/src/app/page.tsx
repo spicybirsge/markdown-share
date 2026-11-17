@@ -22,6 +22,11 @@ export default function Home() {
                   href="#mcp"
                   className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[11.5px] font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
                 >
+                  <span className="size-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/15" />
+                  <span className="font-medium text-emerald-700">
+                    Now with MCP
+                  </span>
+                  <span className="h-3 w-px bg-border" />
                   Connect your agent
                   <ArrowUpRight className="size-3" />
                 </Link>
