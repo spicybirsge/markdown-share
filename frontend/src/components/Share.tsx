@@ -21,7 +21,6 @@ import { toast } from "sonner";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import ShareContent from "@/components/ShareContent";
-import TimeAgo from "@/components/TimeAgo";
 import SourceBadge from "@/components/SourceBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import variables from "@/variables/variables";
@@ -32,7 +31,7 @@ function LoadingState() {
   return (
     <>
       <NavBar />
-      <main className="mx-auto w-full max-w-3xl px-5 pb-24 pt-10 sm:px-6 sm:pt-14">
+      <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-3xl px-5 pb-24 pt-10 sm:px-6 sm:pt-14">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="mt-10 h-11 w-4/5" />
         <Skeleton className="mt-3 h-11 w-3/5" />
@@ -55,7 +54,7 @@ function NotFoundState() {
   return (
     <>
       <NavBar />
-      <main className="mx-auto flex min-h-[68vh] w-full max-w-xl flex-col items-center justify-center px-5 py-20 text-center sm:px-6">
+      <main id="main-content" tabIndex={-1} className="mx-auto flex min-h-[68vh] w-full max-w-xl flex-col items-center justify-center px-5 py-20 text-center sm:px-6">
         <span className="grid size-12 place-items-center rounded-full border border-border bg-card">
           <FileText className="size-5 text-muted-foreground" />
         </span>
@@ -86,7 +85,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <>
       <NavBar />
-      <main className="mx-auto flex min-h-[68vh] w-full max-w-xl flex-col items-center justify-center px-5 py-20 text-center sm:px-6">
+      <main id="main-content" tabIndex={-1} className="mx-auto flex min-h-[68vh] w-full max-w-xl flex-col items-center justify-center px-5 py-20 text-center sm:px-6">
         <span className="grid size-12 place-items-center rounded-full border border-border bg-card">
           <FileText className="size-5 text-muted-foreground" />
         </span>
@@ -223,7 +222,7 @@ export default function Share({ id }: { id: string }) {
   return (
     <>
       <NavBar />
-      <main className="mx-auto w-full max-w-3xl px-5 pb-24 pt-8 sm:px-6 sm:pt-12">
+      <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-3xl px-5 pb-24 pt-8 sm:px-6 sm:pt-12">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-3">
           <Link
             href="/list"
@@ -238,14 +237,14 @@ export default function Share({ id }: { id: string }) {
               href={markdownPath}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
+              className="inline-flex h-11 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
             >
               <FileCode className="size-3.5" />
               Open as markdown
               <ArrowUpRight className="size-3.5" />
             </a>
 
-            <div className="flex h-9 items-center rounded-full border border-border bg-card">
+            <div className="flex h-11 items-center rounded-full border border-border bg-card">
               <button
                 type="button"
                 onClick={copyUiLink}
@@ -281,7 +280,7 @@ export default function Share({ id }: { id: string }) {
                         className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[12.5px] font-medium text-muted-foreground outline-none select-none data-[highlighted]:bg-muted data-[highlighted]:text-foreground"
                       >
                         <Copy className="size-3.5" />
-                        Copy UI link
+                        Copy page link
                       </Menu.Item>
                       <Menu.Item
                         onClick={copyMarkdownLink}
@@ -299,18 +298,14 @@ export default function Share({ id }: { id: string }) {
         </div>
 
         <article className="mt-10">
-          <div className="flex flex-wrap items-center gap-2.5 font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2.5 text-xs text-muted-foreground">
             <span className="rounded-full border border-border bg-card px-2.5 py-1">
               {share.unlisted ? "Unlisted" : "Public"}
             </span>
             <SourceBadge source={share.source} />
-            <span className="size-0.5 rounded-full bg-muted-foreground/60" />
-            <span className="normal-case tracking-normal">
-              <TimeAgo date={Number(share.createdAt)} />
-            </span>
           </div>
 
-          <h1 className="mt-5 text-[clamp(2.1rem,5.5vw,3.35rem)] font-semibold leading-[1.06] tracking-[-0.04em]">
+          <h1 className="mt-5 break-words text-[clamp(2.1rem,5.5vw,3.35rem)] font-semibold leading-[1.06] tracking-[-0.04em]">
             {share.title || "Untitled share"}
           </h1>
 
@@ -320,7 +315,7 @@ export default function Share({ id }: { id: string }) {
             </p>
           ) : null}
 
-          <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-border py-3.5 text-[11.5px] text-muted-foreground">
+          <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-border py-3.5 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <Calendar className="size-3.5" />
               {timeStampToDate(Number(share.createdAt))}
@@ -342,15 +337,9 @@ export default function Share({ id }: { id: string }) {
 
         <div className="mt-16 flex flex-col gap-5 rounded-2xl border border-border bg-muted/30 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div>
-            <p className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted-foreground">
-              Markdown Share
-            </p>
-            <h2 className="mt-2 text-lg font-medium tracking-[-0.015em]">
+            <h2 className="text-lg font-medium tracking-[-0.015em]">
               Have something to share?
             </h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              Turn your own markdown into a clean page in seconds.
-            </p>
           </div>
           <Link
             href="/new"

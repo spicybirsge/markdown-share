@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import Logo, { LogoMark } from "@/components/Logo";
+import Logo from "@/components/Logo";
 import GithubIcon from "@/components/GithubIcon";
 
 const GROUPS = [
@@ -29,7 +29,7 @@ export default function Footer() {
           <div className="max-w-sm">
             <Logo />
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              The agentic markdown sharing platform.
+              Markdown. Made to share.
             </p>
           </div>
 
@@ -78,7 +78,6 @@ export default function Footer() {
 
         <div className="mt-12 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2.5">
-            <LogoMark className="size-6 rounded-[7px]" />
             <p className="text-xs text-muted-foreground">
               © {new Date().getFullYear()} Shaheer Ahamed. MIT License.
             </p>

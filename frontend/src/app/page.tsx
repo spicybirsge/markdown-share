@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <>
       <NavBar />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <section className="relative overflow-hidden border-b border-border">
           <div className="mx-auto flex min-h-[calc(100svh-4rem)] w-full max-w-6xl flex-col justify-center px-5 py-14 sm:px-6 lg:py-16">
             <div className="grid min-w-0 items-center gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
@@ -22,11 +22,6 @@ export default function Home() {
                   href="#mcp"
                   className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[11.5px] font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
                 >
-                  <span className="size-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/15" />
-                  <span className="font-medium text-emerald-700">
-                    Now with MCP
-                  </span>
-                  <span className="h-3 w-px bg-border" />
                   Connect your agent
                   <ArrowUpRight className="size-3" />
                 </Link>
@@ -35,18 +30,16 @@ export default function Home() {
                   className="animate-fade-up mt-7 text-[clamp(2rem,4.6vw,3.6rem)] font-semibold leading-[1.02] tracking-[-0.045em]"
                   style={{ animationDelay: "60ms" }}
                 >
-                  <span className="block">The agentic</span>
-                  <span className="block">markdown sharing</span>
-                  <span className="block">platform</span>
+                  <span className="block">Your markdown.</span>
+                  <span className="block">Ready to share.</span>
                 </h1>
 
                 <p
                   className="animate-fade-up mt-6 max-w-lg text-base leading-7 text-muted-foreground sm:text-[17px] sm:leading-8"
                   style={{ animationDelay: "120ms" }}
                 >
-                  Markdown Share turns plain markdown into clean, permanent
-                  pages. Write it yourself, or let your agent publish it over
-                  MCP.
+                  Turn markdown into a page anyone can read. Write it yourself
+                  or publish with your agent. No account needed.
                 </p>
 
                 <div
@@ -83,15 +76,11 @@ export default function Home() {
           <div className="mx-auto w-full max-w-4xl px-5 py-20 sm:px-6 sm:py-24">
             <div className="mb-9 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-                  Create
-                </p>
-                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
-                  Write one yourself.
+                <h2 className="text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
+                  Make something worth sharing.
                 </h2>
                 <p className="mt-3 max-w-lg text-[15px] leading-7 text-muted-foreground">
-                  Paste markdown, add a title, get a link. No account, no
-                  setup.
+                  Start with your markdown. We’ll take care of the page.
                 </p>
               </div>
               <Link

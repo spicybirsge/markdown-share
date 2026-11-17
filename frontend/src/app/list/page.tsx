@@ -54,23 +54,25 @@ function ShareCard({ share }: { share: ShareListItem }) {
   return (
     <Link
       href={`/share/${share._id}`}
-      className="group flex h-full min-h-[14.5rem] min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/25 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:p-6"
+      className="group flex h-full min-h-64 min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-[border-color,box-shadow] duration-200 hover:border-foreground/25 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:p-7"
     >
       <div className="flex items-center justify-between gap-4">
         <SourceBadge source={share.source} />
-        <ArrowUpRight className="size-4 text-muted-foreground transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
+        <ArrowUpRight aria-hidden="true" className="size-4 text-muted-foreground transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
       </div>
 
       <h2
-        className="mt-4 truncate text-[17px] font-medium leading-6 tracking-[-0.015em]"
+        className="mt-5 line-clamp-2 break-words text-lg font-medium leading-7 tracking-[-0.02em]"
         title={share.title || "Untitled share"}
       >
         {share.title || "Untitled share"}
       </h2>
 
-      <p className="mt-2 line-clamp-4 min-h-0 flex-1 break-words text-[13.5px] leading-6 text-muted-foreground">
-        {share.description || share.excerpt || "No description."}
-      </p>
+      {(share.description || share.excerpt) && (
+        <p className="mt-2 line-clamp-3 break-words text-sm leading-6 text-muted-foreground">
+          {share.description || share.excerpt}
+        </p>
+      )}
 
       <div className="mt-auto flex items-center gap-2.5 pt-6 text-[11px] text-muted-foreground">
         <TimeAgo date={Number(share.createdAt)} />
@@ -89,22 +91,12 @@ export default async function ListPage() {
   return (
     <>
       <NavBar />
-      <main className="mx-auto w-full max-w-6xl px-5 pb-24 pt-14 sm:px-6 sm:pt-20">
-        <div className="flex flex-col gap-6 border-b border-border pb-8 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-              Public List
-            </p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
-              Public shares
-            </h1>
-            <p className="mt-3 max-w-xl text-[15px] leading-7 text-muted-foreground">
-              Markdown documents published by people and agents which are not
-              unlisted.
-            </p>
-          </div>
-        
-        </div>
+      <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-6xl px-5 pb-24 pt-14 sm:px-6 sm:pt-20">
+        <header className="mb-10 sm:mb-12">
+          <h1 className="text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+            Public shares
+          </h1>
+        </header>
 
         {error ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border px-6 py-24 text-center">
@@ -144,16 +136,11 @@ export default async function ListPage() {
             </Link>
           </div>
         ) : (
-          <>
-            <p className="py-5 text-[13px] text-muted-foreground">
-              Showing top 27 most recent posts sorted by newest first.
-            </p>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {shares.map((share) => (
-                <ShareCard key={share._id} share={share} />
-              ))}
-            </div>
-          </>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {shares.map((share) => (
+              <ShareCard key={share._id} share={share} />
+            ))}
+          </div>
         )}
       </main>
       <Footer />

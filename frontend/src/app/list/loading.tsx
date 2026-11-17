@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 
 function ShareCardSkeleton() {
   return (
-    <div className="flex h-full min-h-[14.5rem] min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card p-5 sm:p-6 animate-pulse">
+    <div className="flex h-full min-h-64 min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-7 animate-pulse">
       <div className="flex items-center justify-between gap-4">
         <div className="h-5 w-16 rounded-full bg-muted" />
         <div className="size-4 rounded bg-muted" />
@@ -30,27 +30,15 @@ export default function Loading() {
   return (
     <>
       <NavBar />
-      <main className="mx-auto w-full max-w-6xl px-5 pb-24 pt-14 sm:px-6 sm:pt-20">
-        <div className="flex flex-col gap-6 border-b border-border pb-8 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-              Public List
-            </p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
-              Public shares
-            </h1>
-            <p className="mt-3 max-w-xl text-[15px] leading-7 text-muted-foreground">
-              Markdown documents published by people and agents which are not
-              unlisted.
-            </p>
-          </div>
-        </div>
+      <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-6xl px-5 pb-24 pt-14 sm:px-6 sm:pt-20">
+        <header className="mb-10 sm:mb-12">
+          <h1 className="text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+            Public shares
+          </h1>
+        </header>
+        <p role="status" className="sr-only">Loading public shares…</p>
 
-        <p className="py-5 text-[13px] text-muted-foreground">
-          Loading latest shares...
-        </p>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div aria-hidden="true" className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <ShareCardSkeleton key={index} />
           ))}
